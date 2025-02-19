@@ -7,18 +7,22 @@ const commentSchema = new mongoose.Schema({
   timestamp: { type: Date, default: Date.now }
 });
 
+// models/Post.js snippet addition
 const postSchema = new mongoose.Schema(
   {
     user: { type: mongoose.Schema.Types.ObjectId, ref: 'UserAuth', required: true },
     isAnonymous: { type: Boolean, default: false },
     content: { type: String, required: true },
     tags: { type: [String], default: [] },
-    upvotes: { type: Number, default: 0 },
-    downvotes: { type: Number, default: 0 },
+    upvotes: { type: Number, default: 0 }, // optional if you calculate length of upvotedBy
+    downvotes: { type: Number, default: 0 }, // optional if you calculate length of downvotedBy
+    upvotedBy: { type: [mongoose.Schema.Types.ObjectId], ref: 'UserAuth', default: [] },
+    downvotedBy: { type: [mongoose.Schema.Types.ObjectId], ref: 'UserAuth', default: [] },
     comments: [commentSchema]
   },
   { timestamps: true }
 );
+
 
 // Transform _id to postID in output
 postSchema.set("toJSON", {

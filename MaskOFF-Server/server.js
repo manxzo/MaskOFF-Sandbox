@@ -96,24 +96,38 @@ app.get("/api/users", async (req, res) => {
 app.get("/", (req, res) => {
   res.json({ message: "Welcome to MaskOFF" });
 });
+
 app.get("/api", (req, res) => {
   res.json({
     endpoints: {
+      // User-related endpoints
       register: "POST /api/register",
+      verifyEmail: "GET /api/verify-email?userID=<userID>&token=<token>",
+      forgotPassword: "POST /api/forgot-password",
+      resetPassword: "POST /api/reset-password",
       login: "POST /api/users/login",
       getUser: "GET /api/user/:userID",
-      listUsers: "GET /api/users",
       updateProfile: "PUT /api/profile/:userID",
+      listUsers: "GET /api/users",
+      
+      // Post-related endpoints
       createPost: "POST /api/posts",
       getPosts: "GET /api/posts",
-      getPost: "GET /api/posts/:postID",
+      getPost: "GET /api/posts/:postID", // (if implemented)
       updatePost: "PUT /api/posts/:postID",
       deletePost: "DELETE /api/posts/:postID",
+      addComment: "POST /api/posts/:postID/comments",
+      upvotePost: "POST /api/posts/:postID/upvote",
+      downvotePost: "POST /api/posts/:postID/downvote",
+      
+      // Friend-related endpoints
       friendRequest: "POST /api/friends/request",
       friendRequests: "GET /api/friends/requests",
       deleteFriendRequest: "DELETE /api/friends/request",
       acceptFriend: "POST /api/friends/accept",
       friends: "GET /api/friends",
+      
+      // Chat-related endpoints
       createChat: "POST /api/chat/create",
       listChats: "GET /api/chats",
       sendMessage: "POST /api/chat/send",
