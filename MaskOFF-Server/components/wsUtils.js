@@ -1,97 +1,31 @@
-// [components/wsUtils.js]
-// This module maintains a mapping of user IDs to their active WebSocket connections
-// and provides functions to send targeted updates (or broadcast if necessary).
-
+// components/wsUtils.js
 const WebSocket = require("ws");
 
-// Map: userId -> Set of WebSocket connections
-const userConnections = new Map();
+let wss = null;
+// Mapping of userID to their connected WebSocket instance
+// (In a production system, you might want to support multiple sockets per user)
+const userSockets = {};
 
 /**
- * Adds a connection for the specified user.
- * @param {string} userId 
- * @param {WebSocket} ws 
+ * Sets up the WebSocket server by listening for new connections.
+ * When a client connects, it expects an initial JSON message of the form:
+ *   { type: "AUTH", userID: "..." }
+ * This maps the userID to the WebSocket for sending targeted notifications.
+ *
+ * @param {WebSocket.Server} wsServer - The WebSocket server instance.
  */
-function addConnection(userId, ws) {
-  if (!userConnections.has(userId)) {
-    userConnections.set(userId, new Set());
-  }
-  userConnections.get(userId).add(ws);
-}
-
-/**
- * Removes a connection for the specified user.
- * @param {string} userId 
- * @param {WebSocket} ws 
- */
-function removeConnection(userId, ws) {
-  if (userConnections.has(userId)) {
-    userConnections.get(userId).delete(ws);
-    if (userConnections.get(userId).size === 0) {
-      userConnections.delete(userId);
-    }
-  }
-}
-
-/**
- * Sends a JSON message only to the specified user.
- * @param {string} userId 
- * @param {Object} data 
- */
-function sendToUser(userId, data) {
-  const message = JSON.stringify(data);
-  if (userConnections.has(userId)) {
-    for (const ws of userConnections.get(userId)) {
-      if (ws.readyState === WebSocket.OPEN) {
-        ws.send(message);
-      }
-    }
-  }
-}
-
-/**
- * Sends a JSON message to multiple users.
- * @param {string[]} userIds - Array of user IDs to send the message to.
- * @param {Object} data - The data to send.
- */
-function sendToUsers(userIds, data) {
-  userIds.forEach((userId) => {
-    sendToUser(userId, data);
-  });
-}
-
-/**
- * Broadcasts a JSON message to all connected users.
- * @param {Object} data 
- */
-function broadcast(data) {
-  const message = JSON.stringify(data);
-  for (const connections of userConnections.values()) {
-    for (const ws of connections) {
-      if (ws.readyState === WebSocket.OPEN) {
-        ws.send(message);
-      }
-    }
-  }
-}
-
-/**
- * Sets up the WebSocket server.
- * On connection, expects an "AUTH" message with { type: "AUTH", userId: "..." }.
- * @param {WebSocket.Server} wss 
- */
-function setupWebSocketServer(wss) {
-  wss.on("connection", (ws) => {
-    console.log("New WebSocket connection established.");
+const setupWebSocketServer = (wsServer) => {
+  wss = wsServer;
+  wsServer.on("connection", (ws, req) => {
+    console.log("New WebSocket connection from", req.socket.remoteAddress);
 
     ws.on("message", (message) => {
       try {
         const data = JSON.parse(message);
-        // Expect an authentication message to assign a userId to this connection.
-        if (data.type === "AUTH" && data.userId) {
-          ws.userId = data.userId;
-          addConnection(data.userId, ws);
-          console.log(`WebSocket authenticated for user: ${data.userId}`);
+        if (data.type === "AUTH" && data.userID) {
+          // Map the authenticated userID to this WebSocket connection.
+          userSockets[data.userID] = ws;
+          console.log(`User ${data.userID} authenticated on WebSocket`);
         }
       } catch (err) {
         console.error("Error parsing WebSocket message:", err);
@@ -99,17 +33,41 @@ function setupWebSocketServer(wss) {
     });
 
     ws.on("close", () => {
-      if (ws.userId) {
-        removeConnection(ws.userId, ws);
-        console.log(`WebSocket connection closed for user: ${ws.userId}`);
+      // Remove this socket from our mapping.
+      for (const userID in userSockets) {
+        if (userSockets[userID] === ws) {
+          delete userSockets[userID];
+          console.log(`WebSocket for user ${userID} disconnected`);
+          break;
+        }
       }
     });
   });
-}
-
-module.exports = {
-  setupWebSocketServer,
-  sendToUser,
-  sendToUsers,
-  broadcast,
 };
+
+/**
+ * Sends a JSON payload to the connected client identified by userID.
+ *
+ * @param {String} userID - The user's unique identifier.
+ * @param {Object} payload - The JSON payload to send.
+ */
+const sendToUser = (userID, payload) => {
+  const socket = userSockets[userID];
+  if (socket && socket.readyState === WebSocket.OPEN) {
+    socket.send(JSON.stringify(payload));
+  }
+};
+
+/**
+ * Sends a JSON payload to multiple userIDs.
+ *
+ * @param {Array<String>} userIDs - Array of user IDs.
+ * @param {Object} payload - The JSON payload to send.
+ */
+const sendToUsers = (userIDs, payload) => {
+  userIDs.forEach((userID) => {
+    sendToUser(userID, payload);
+  });
+};
+
+module.exports = { setupWebSocketServer, sendToUser, sendToUsers };

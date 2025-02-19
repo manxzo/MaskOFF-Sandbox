@@ -1,6 +1,4 @@
-// [server.js]
-// Main entry point for MaskOFF-Server
-
+// server.js
 require("dotenv").config();
 const express = require("express");
 const mongoose = require("mongoose");
@@ -12,11 +10,18 @@ const WebSocket = require("ws");
 const http = require("http");
 const cookieParser = require("cookie-parser");
 
+// Route Imports
+const userRoutes = require("./routes/userRoutes");       // Registration, login, user profile endpoints
+const friendRoutes = require("./routes/friendRoutes");     // Friend requests and friend list endpoints
+const chatRoutes = require("./routes/chatRoutes");         // Chat endpoints (create chat, send message, etc.)
+const postRoutes = require("./routes/postRoutes");         // Post endpoints (create, read, update, delete posts)
+
+// Create Express app and HTTP server
 const app = express();
 const port = process.env.PORT || 3000;
 const server = http.createServer(app);
 
-// Middleware
+// Middleware Setup
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
@@ -34,33 +39,19 @@ app.use(
 );
 app.use(morgan("combined"));
 
-// View engine setup
+// Set view engine if needed
 app.set("view engine", "ejs");
 app.set("views", __dirname + "/views");
 
 // Rate Limiting Middleware
 const limiter = rateLimit({
-  windowMs: 15 * 60 * 1000,
+  windowMs: 15 * 60 * 1000, // 15 minutes
   max: 1000,
 });
 app.use(limiter);
 
-// Routes
-const apiRoutes = require("./routes/api");
-app.use("/api", apiRoutes);
-const adminRoutes = require("./routes/admin");
-app.use("/admin", adminRoutes);
-
-// Import and use post routes
-const postRoutes = require("./routes/posts");
-app.use("/api", postRoutes);
-
-// Import and use introduction routes
-const introductionRoutes = require("./routes/introductions");
-app.use("/api", introductionRoutes);
-
-// MongoDB Connection
-mongoose.connect(process.env.MONGODB_URI);
+// Connect MongoDB using the URI from environment variables
+mongoose.connect(process.env.MONGODB_URI, { useNewUrlParser: true, useUnifiedTopology: true });
 mongoose.connection.on("connected", () => {
   console.log(`Connected to MongoDB: ${mongoose.connection.name}`);
 });
@@ -68,31 +59,56 @@ mongoose.connection.on("error", (err) => {
   console.error(`MongoDB connection error: ${err}`);
 });
 
-// Create WebSocket server and attach it to the HTTP server.
-const wss = new WebSocket.Server({ server });
-app.locals.wss = wss; // (optional if you need it in routes)
-const { setupWebSocketServer } = require("./components/wsUtils");
-setupWebSocketServer(wss);
+// Mount API Routes
+app.use("/api", userRoutes);
+app.use("/api", friendRoutes);
+app.use("/api", chatRoutes);
+app.use("/api", postRoutes);
 
-// Root & API info endpoints
+// New Route: Get a list of all users (public info only)
+// For security, only return basic info (userID, username, firstName, lastName, public profile)
+const UserAuth = require("./models/UserAuth");
+const UserProfile = require("./models/UserProfile");
+app.get("/api/users", async (req, res) => {
+  try {
+    // Retrieve all users from authentication collection
+    const users = await UserAuth.find({});
+    // For each user, get their corresponding public profile
+    const userList = await Promise.all(
+      users.map(async (user) => {
+        const profile = await UserProfile.findOne({ user: user._id });
+        return {
+          userID: user.userID,
+          username: user.username,
+          firstName: user.firstName,
+          lastName: user.lastName,
+          publicInfo: profile ? profile.publicInfo : {},
+        };
+      })
+    );
+    res.json({ users: userList });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Root endpoint: Provide a list of active endpoints for reference
 app.get("/", (req, res) => {
   res.json({ message: "Welcome to MaskOFF" });
 });
-
 app.get("/api", (req, res) => {
   res.json({
     endpoints: {
-      register: "POST /api/newuser",
+      register: "POST /api/register",
       login: "POST /api/users/login",
       getUser: "GET /api/user/:userID",
       listUsers: "GET /api/users",
+      updateProfile: "PUT /api/profile/:userID",
       createPost: "POST /api/posts",
       getPosts: "GET /api/posts",
-      getPost: "GET /api/posts/:postId",
-      updatePost: "PUT /api/posts/:postId",
-      deletePost: "DELETE /api/posts/:postId",
-      createIntroduction: "POST /api/introduction",
-      getIntroductions: "GET /api/introductions",
+      getPost: "GET /api/posts/:postID",
+      updatePost: "PUT /api/posts/:postID",
+      deletePost: "DELETE /api/posts/:postID",
       friendRequest: "POST /api/friends/request",
       friendRequests: "GET /api/friends/requests",
       deleteFriendRequest: "DELETE /api/friends/request",
@@ -100,16 +116,24 @@ app.get("/api", (req, res) => {
       friends: "GET /api/friends",
       createChat: "POST /api/chat/create",
       listChats: "GET /api/chats",
-      findChats: "GET /api/chat/:userId",
       sendMessage: "POST /api/chat/send",
-      getMessages: "GET /api/chat/messages/:chatId",
-      deleteMessage: "DELETE /api/chat/message/:chatId/:messageId",
-      editMessage: "PUT /api/chat/message/:chatId/:messageId",
-      deleteChat: "DELETE /api/chat/:chatId",
+      getMessages: "GET /api/chat/messages/:chatID",
+      deleteMessage: "DELETE /api/chat/message/:chatID/:messageID",
+      editMessage: "PUT /api/chat/message/:chatID/:messageID",
+      deleteChat: "DELETE /api/chat/:chatID"
     },
   });
 });
 
+// Create WebSocket server using native ws module
+const wss = new WebSocket.Server({ server });
+app.locals.wss = wss; // Make it accessible in routes if needed
+
+// Setup WebSocket server (mapping and notifications)
+const { setupWebSocketServer } = require("./components/wsUtils");
+setupWebSocketServer(wss);
+
+// Start HTTP server
 server.listen(port, () => {
   console.log(`Server is running on port ${port}`);
 });

@@ -1,34 +1,26 @@
-const mongoose = require("mongoose");
-const Schema = mongoose.Schema;
+// models/Post.js
+const mongoose = require('mongoose');
 
-// Comment sub-schema
-const commentSchema = new Schema({
-  author: { type: Schema.Types.ObjectId, ref: "User", required: true },
+const commentSchema = new mongoose.Schema({
+  user: { type: mongoose.Schema.Types.ObjectId, ref: 'UserAuth', required: true },
   content: { type: String, required: true },
-  createdAt: { type: Date, default: Date.now },
+  timestamp: { type: Date, default: Date.now }
 });
 
-// Post schema
-const postSchema = new Schema(
+const postSchema = new mongoose.Schema(
   {
-    title: { type: String, required: true, trim: true },
+    user: { type: mongoose.Schema.Types.ObjectId, ref: 'UserAuth', required: true },
+    isAnonymous: { type: Boolean, default: false },
     content: { type: String, required: true },
-    author: { type: Schema.Types.ObjectId, ref: "User", required: true },
-    //postType distinguish between 'community' and 'job' posts
-    postType: {
-      type: String,
-      enum: ["community", "job"],
-      default: "community",
-    },
-    comments: [commentSchema],
-    createdAt: { type: Date, default: Date.now },
+    tags: { type: [String], default: [] },
+    upvotes: { type: Number, default: 0 },
+    downvotes: { type: Number, default: 0 },
+    comments: [commentSchema]
   },
-  {
-    timestamps: true,
-  }
+  { timestamps: true }
 );
 
-// JSON transformation; add postID, remove _id and __v
+// Transform _id to postID in output
 postSchema.set("toJSON", {
   virtuals: true,
   transform: (doc, ret) => {
@@ -36,12 +28,8 @@ postSchema.set("toJSON", {
     delete ret._id;
     delete ret.__v;
     return ret;
-  },
+  }
 });
-
-// Add indexes for better query performance
-postSchema.index({ createdAt: -1 });
-postSchema.index({ postType: 1 });
-postSchema.index({ author: 1 });
+postSchema.set("toObject", { virtuals: true });
 
 module.exports = mongoose.model("Post", postSchema);
