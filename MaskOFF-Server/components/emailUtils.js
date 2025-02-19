@@ -12,16 +12,6 @@ const forgotTemplateId = process.env.FORGOT_TEMPLATE_ID ? process.env.FORGOT_TEM
 console.log("Using VERIFY_TEMPLATE_ID:", verifyTemplateId);
 console.log("Using FORGOT_TEMPLATE_ID:", forgotTemplateId);
 
-/**
- * Sends a verification email using MailerSend.
- * @param {Object} options - Options for the email.
- * @param {string} options.to - Recipient email address.
- * @param {string} options.toName - Recipient name.
- * @param {string} options.username - Username to include in the email.
- * @param {string} options.verifyUrl - Verification URL to be included.
- * @param {string} options.supportEmail - Support email address to include.
- * @returns {Promise} - Resolves with the result from MailerSend.
- */
 const sendVerificationEmail = async ({ to, toName, username, verifyUrl, supportEmail }) => {
   console.log("Sending verification email to:", to);
 
@@ -36,18 +26,20 @@ const sendVerificationEmail = async ({ to, toName, username, verifyUrl, supportE
       },
     },
   ];
-
-  const emailParams = new EmailParams({
-    from: {
-      email: process.env.EMAIL_FROM ? process.env.EMAIL_FROM.trim() : "info@domain.com",
-      name: process.env.EMAIL_FROM_NAME ? process.env.EMAIL_FROM_NAME.trim() : "Your Name"
-    },
-    to: recipients,
-    subject: "Verify your email address",
-    template_id: verifyTemplateId,
-    personalization,
-  });
-
+  const emailParams = new EmailParams()
+  .setFrom({
+    email: process.env.EMAIL_FROM ? process.env.EMAIL_FROM.trim() : "info@domain.com",
+    name: process.env.EMAIL_FROM_NAME ? process.env.EMAIL_FROM_NAME.trim() : "Your Name"
+  })
+  .setTo(recipients)
+  .setReplyTo({
+    email: process.env.EMAIL_FROM ? process.env.EMAIL_FROM.trim() : "info@domain.com",
+    name: process.env.EMAIL_FROM_NAME ? process.env.EMAIL_FROM_NAME.trim() : "Your Name"
+  })
+  .setSubject("Verify your email address")
+  .setTemplateId(verifyTemplateId)
+  .setPersonalization(personalization);
+  
   try {
     const result = await mailersend.email.send(emailParams);
     return result;
@@ -56,16 +48,6 @@ const sendVerificationEmail = async ({ to, toName, username, verifyUrl, supportE
   }
 };
 
-/**
- * Sends a forgot-password email using MailerSend.
- * @param {Object} options - Options for the email.
- * @param {string} options.to - Recipient email address.
- * @param {string} options.toName - Recipient name.
- * @param {string} options.username - Username to include in the email.
- * @param {string} options.resetUrl - Password reset URL to be included.
- * @param {string} options.supportEmail - Support email address to include.
- * @returns {Promise} - Resolves with the result from MailerSend.
- */
 const sendForgotPasswordEmail = async ({ to, toName, username, resetUrl, supportEmail }) => {
   console.log("Sending forgot password email to:", to);
 
@@ -80,18 +62,19 @@ const sendForgotPasswordEmail = async ({ to, toName, username, resetUrl, support
       },
     },
   ];
-
-  const emailParams = new EmailParams({
-    from: {
-      email: process.env.EMAIL_FROM ? process.env.EMAIL_FROM.trim() : "info@domain.com",
-      name: process.env.EMAIL_FROM_NAME ? process.env.EMAIL_FROM_NAME.trim() : "Your Name"
-    },
-    to: recipients,
-    subject: "Reset your password",
-    template_id: forgotTemplateId,
-    personalization,
-  });
-
+  const emailParams = new EmailParams()
+  .setFrom({
+    email: process.env.EMAIL_FROM ? process.env.EMAIL_FROM.trim() : "info@domain.com",
+    name: process.env.EMAIL_FROM_NAME ? process.env.EMAIL_FROM_NAME.trim() : "Your Name"
+  })
+  .setTo(recipients)
+  .setReplyTo({
+    email: process.env.EMAIL_FROM ? process.env.EMAIL_FROM.trim() : "info@domain.com",
+    name: process.env.EMAIL_FROM_NAME ? process.env.EMAIL_FROM_NAME.trim() : "Your Name"
+  })
+  .setSubject("Reset your Password")
+  .setTemplateId(forgotTemplateId)
+  .setPersonalization(personalization);
   try {
     const result = await mailersend.email.send(emailParams);
     return result;
