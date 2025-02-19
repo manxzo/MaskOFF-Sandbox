@@ -1,270 +1,170 @@
-import axios from "axios";
-const network = import.meta.env.VITE_NETWORK_API_URL;
-const SERVER_URL = `https://${network}/api/`;
+import axios from 'axios';
 
-// Helper function to get token from localStorage
-export const getAuthToken = (): string | null => localStorage.getItem("token");
+// Set the base URL from an environment variable (e.g., REACT_APP_API_BASE_URL)
+const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'http://localhost:3000/api';
 
-// Create User (Signup)
-export const createUser = async (userInfo: {
+// Create an Axios instance
+const apiClient = axios.create({
+  baseURL: API_BASE_URL,
+});
+
+// Request interceptor to attach JWT token to every request if available.
+apiClient.interceptors.request.use((config) => {
+  const token = localStorage.getItem('token');
+  if (token && config.headers) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+  return config;
+});
+
+// ===== User Endpoints =====
+
+// Register a new user
+export const registerUser = (data: {
+  firstName: string;
+  lastName: string;
+  email: string;
   username: string;
   password: string;
-}): Promise<any> => {
-  const response = await axios.post(`${SERVER_URL}newuser`, userInfo);
-  if (response.data.token) {
-    localStorage.setItem("token", response.data.token);
-  }
-  return response.data;
-};
+  confirmPassword: string;
+  publicInfo?: any;
+  anonymousInfo?: any;
+}) => apiClient.post('/register', data);
 
-// Login User
-export const login = async (
-  username: string,
-  password: string
-): Promise<any> => {
-  const response = await axios.post(`${SERVER_URL}users/login`, {
-    username,
-    password,
-  });
-  if (response.data.token) {
-    localStorage.setItem("token", response.data.token);
-  }
-  return response.data;
-};
+// Verify email
+export const verifyEmail = (userID: string, token: string) =>
+  apiClient.get('/verify-email', { params: { userID, token } });
 
-// Fetch User Data if userID matches token
-export const fetchUserData = async (userID: string): Promise<any> => {
-  const token = getAuthToken();
-  const response = await axios.get(`${SERVER_URL}user/${userID}`, {
-    headers: { Authorization: `Bearer ${token}` },
-  });
-  return response.data;
-};
+// Request forgot password
+export const forgotPassword = (email: string) =>
+  apiClient.post('/forgot-password', { email });
 
-// Logout User
-export const logout = (): void => {
-  localStorage.removeItem("token");
-};
+// Reset password
+export const resetPassword = (data: {
+  userID: string;
+  token: string;
+  newPassword: string;
+  confirmNewPassword: string;
+}) => apiClient.post('/reset-password', data);
 
-// Retrieve all users
-export const retrieveAllUsers = async (): Promise<any> => {
-  const response = await axios.get(`${SERVER_URL}users`);
-  return response.data;
-};
+// Login user
+export const loginUser = (username: string, password: string) =>
+  apiClient.post('/users/login', { username, password });
 
-// Send a Friend Request (uses friendID)
-export const sendFriendReq = async (friendID: string): Promise<any> => {
-  const token = getAuthToken();
-  const response = await axios.post(
-    `${SERVER_URL}friends/request`,
-    { friendID },
-    { headers: { Authorization: `Bearer ${token}` } }
-  );
-  return response.data;
-};
+// Get user details
+export const getUser = (userID: string) => apiClient.get(`/user/${userID}`);
 
-// Retrieve Friend Requests for logged-in user
-export const retrieveFriendReq = async (): Promise<any> => {
-  const token = getAuthToken();
-  const response = await axios.get(`${SERVER_URL}friends/requests`, {
-    headers: { Authorization: `Bearer ${token}` },
-  });
-  return response.data;
-};
+// Update user profile
+export const updateProfile = (userID: string, data: { publicInfo?: any; anonymousInfo?: any }) =>
+  apiClient.put(`/profile/${userID}`, data);
 
-// Accept Friend Request (uses friendID)
-export const acceptFriendReq = async (friendID: string): Promise<any> => {
-  const token = getAuthToken();
-  const response = await axios.post(
-    `${SERVER_URL}friends/accept`,
-    { friendID },
-    { headers: { Authorization: `Bearer ${token}` } }
-  );
-  return response.data;
-};
+// List all users (public info)
+export const listUsers = () => apiClient.get('/users');
 
-// Retrieve Friend List for logged-in user
-export const retrieveFriendList = async (): Promise<any> => {
-  const token = getAuthToken();
-  const response = await axios.get(`${SERVER_URL}friends`, {
-    headers: { Authorization: `Bearer ${token}` },
-  });
-  return response.data;
-};
+// ===== Post Endpoints =====
 
-// Start Chat between Logged-in User and another participant (uses recipientID)
-export const startChat = async (recipientID: string): Promise<any> => {
-  const token = getAuthToken();
-  const response = await axios.post(
-    `${SERVER_URL}chat/create`,
-    { recipientID },
-    { headers: { Authorization: `Bearer ${token}` } }
-  );
-  return response.data;
-};
+// Create a new post
+export const createPost = (data: { content: string; tags?: string[]; isAnonymous?: boolean }) =>
+  apiClient.post('/posts', data);
 
-// Retrieve all Chats belonging to the logged-in user
-export const retrieveChats = async (): Promise<any> => {
-  const token = getAuthToken();
-  const response = await axios.get(`${SERVER_URL}chats`, {
-    headers: { Authorization: `Bearer ${token}` },
-  });
-  return response.data;
-};
+// Get all posts
+export const getPosts = () => apiClient.get('/posts');
 
-// Retrieve all messages in a Chat (decrypted for participants)
-export const retrieveChatMessages = async (chatId: string): Promise<any> => {
-  const token = getAuthToken();
-  const response = await axios.get(`${SERVER_URL}chat/messages/${chatId}`, {
-    headers: { Authorization: `Bearer ${token}` },
-  });
-  return response.data;
-};
+// Get a single post by postID
+export const getPost = (postID: string) => apiClient.get(`/posts/${postID}`);
 
-// Send a message to a recipient. This endpoint automatically checks for an existing chat (or creates one).
-// It expects { recipientID, text } in the body.
-export const sendMessage = async (
-  recipientID: string,
-  text: string
-): Promise<any> => {
-  const token = getAuthToken();
-  const response = await axios.post(
-    `${SERVER_URL}chat/send`,
-    { recipientID: recipientID, text: text },
-    { headers: { Authorization: `Bearer ${token}` } }
-  );
-  return response.data;
-};
+// Update a post
+export const updatePost = (postID: string, data: { content?: string; tags?: string[]; isAnonymous?: boolean }) =>
+  apiClient.put(`/posts/${postID}`, data);
 
-// Edit a message in a chat.
-// Expects { newText } in the body and uses the URL /chat/message/:chatId/:messageId
-export const editMessage = async (
-  chatId: string,
-  messageId: string,
-  newText: string
-): Promise<any> => {
-  const token = getAuthToken();
-  const response = await axios.put(
-    `${SERVER_URL}chat/message/${chatId}/${messageId}`,
-    { newText },
-    { headers: { Authorization: `Bearer ${token}` } }
-  );
-  return response.data;
-};
+// Delete a post
+export const deletePost = (postID: string) => apiClient.delete(`/posts/${postID}`);
 
-// Delete a specific message from a chat
-export const deleteMessage = async (
-  chatId: string,
-  messageId: string
-): Promise<any> => {
-  const token = getAuthToken();
-  const response = await axios.delete(
-    `${SERVER_URL}chat/message/${chatId}/${messageId}`,
-    {
-      headers: { Authorization: `Bearer ${token}` },
-    }
-  );
-  return response.data;
-};
+// Add a comment to a post
+export const addComment = (postID: string, content: string) =>
+  apiClient.post(`/posts/${postID}/comments`, { content });
+
+// Upvote a post
+export const upvotePost = (postID: string) => apiClient.post(`/posts/${postID}/upvote`);
+
+// Downvote a post
+export const downvotePost = (postID: string) => apiClient.post(`/posts/${postID}/downvote`);
+
+// ===== Friend Endpoints =====
+
+// Send friend request
+export const sendFriendRequest = (friendID: string) =>
+  apiClient.post('/friends/request', { friendID });
+
+// Get friend requests
+export const getFriendRequests = () => apiClient.get('/friends/requests');
+
+// Delete friend request
+export const deleteFriendRequest = (friendID: string) =>
+  apiClient.delete('/friends/request', { data: { friendID } });
+
+// Accept friend request
+export const acceptFriendRequest = (friendID: string) =>
+  apiClient.post('/friends/accept', { friendID });
+
+// Get friends list
+export const getFriends = () => apiClient.get('/friends');
+
+// ===== Chat Endpoints =====
+
+// Create a new chat
+export const createChat = (recipientID: string) =>
+  apiClient.post('/chat/create', { recipientID });
+
+// List chats
+export const listChats = () => apiClient.get('/chats');
+
+// Send a message in a chat
+export const sendMessage = (recipientID: string, text: string) =>
+  apiClient.post('/chat/send', { recipientID, text });
+
+// Get messages for a chat
+export const getMessages = (chatID: string) => apiClient.get(`/chat/messages/${chatID}`);
+
+// Delete a message from a chat
+export const deleteMessage = (chatID: string, messageID: string) =>
+  apiClient.delete(`/chat/message/${chatID}/${messageID}`);
+
+// Edit a message in a chat
+export const editMessage = (chatID: string, messageID: string, newText: string) =>
+  apiClient.put(`/chat/message/${chatID}/${messageID}`, { newText });
 
 // Delete an entire chat
-export const deleteChat = async (chatId: string): Promise<any> => {
-  const token = getAuthToken();
-  const response = await axios.delete(`${SERVER_URL}chat/${chatId}`, {
-    headers: { Authorization: `Bearer ${token}` },
-  });
-  return response.data;
-};
+export const deleteChat = (chatID: string) => apiClient.delete(`/chat/${chatID}`);
 
-// Post and Introduction Types
-export interface Post {
-  postID: string;
-  title: string;
-  content: string;
-  author: {
-    username: string;
-    userID: string;
-  };
-  postType: "community" | "job";
-  createdAt: Date;
-}
-
-export interface Introduction {
-  introID: string;
-  content: string;
-  createdAt: Date;
-}
-
-// Posts API calls
-export const createPost = async (
-  title: string,
-  content: string,
-  postType: "community" | "job"
-) => {
-  try {
-    const token = getAuthToken();
-    if (!token) throw new Error("No authentication token");
-
-    const response = await axios.post(
-      `${SERVER_URL}posts`,
-      { title, content, postType },
-      { headers: { Authorization: `Bearer ${token}` } }
-    );
-    return response.data;
-  } catch (error: any) {
-    console.error("Create post error:", error);
-    throw new Error(error.response?.data?.error || "Failed to create post");
-  }
-};
-
-export const getPosts = async () => {
-  try {
-    const token = getAuthToken();
-    if (!token) throw new Error("No authentication token");
-
-    const response = await axios.get(`${SERVER_URL}posts`, {
-      headers: { Authorization: `Bearer ${token}` },
-    });
-    return response.data;
-  } catch (error: any) {
-    console.error("Get posts error:", error);
-    throw new Error(error.response?.data?.error || "Failed to fetch posts");
-  }
-};
-
-// Introductions API calls
-export const createIntroduction = async (content: string) => {
-  try {
-    const token = getAuthToken();
-    if (!token) throw new Error("No authentication token");
-
-    const response = await axios.post(
-      `${SERVER_URL}introduction`,
-      { content },
-      { headers: { Authorization: `Bearer ${token}` } }
-    );
-    return response.data;
-  } catch (error: any) {
-    console.error("Create introduction error:", error);
-    throw new Error(
-      error.response?.data?.error || "Failed to create introduction"
-    );
-  }
-};
-
-export const getIntroductions = async () => {
-  try {
-    const token = getAuthToken();
-    if (!token) throw new Error("No authentication token");
-
-    const response = await axios.get(`${SERVER_URL}introductions`, {
-      headers: { Authorization: `Bearer ${token}` },
-    });
-    return response.data;
-  } catch (error: any) {
-    console.error("Get introductions error:", error);
-    throw new Error(
-      error.response?.data?.error || "Failed to fetch introductions"
-    );
-  }
+// Export all services as default for easier import
+export default {
+  registerUser,
+  verifyEmail,
+  forgotPassword,
+  resetPassword,
+  loginUser,
+  getUser,
+  updateProfile,
+  listUsers,
+  createPost,
+  getPosts,
+  getPost,
+  updatePost,
+  deletePost,
+  addComment,
+  upvotePost,
+  downvotePost,
+  sendFriendRequest,
+  getFriendRequests,
+  deleteFriendRequest,
+  acceptFriendRequest,
+  getFriends,
+  createChat,
+  listChats,
+  sendMessage,
+  getMessages,
+  deleteMessage,
+  editMessage,
+  deleteChat,
 };

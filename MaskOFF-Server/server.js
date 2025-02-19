@@ -97,7 +97,7 @@ app.get("/", (req, res) => {
   res.json({ message: "Welcome to MaskOFF" });
 });
 
-app.get("/api", (req, res) => {
+app.get("/api/endpoints", (req, res) => {
   res.json({
     endpoints: {
       // User-related endpoints
