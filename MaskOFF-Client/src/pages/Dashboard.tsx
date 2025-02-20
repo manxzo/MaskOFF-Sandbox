@@ -2,7 +2,7 @@ import { useContext } from "react";
 import DefaultLayout from "@/layouts/default";
 import { Button } from "@heroui/button";
 import { Link } from "@heroui/link";
-import { UserConfigContext } from "@/config/UserConfig";
+import { UserConfigContext } from "@/config/GlobalConfig";
 import { Feed } from "@/components/Feed";
 import useWebSocket from "@/hooks/useWebSocket"; // Import the WS hook
 
@@ -31,7 +31,7 @@ export const Dashboard = () => {
         </div>
       </div>
       <div>
-      <Feed />
+        <Feed />
       </div>
     </DefaultLayout>
   );

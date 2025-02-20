@@ -1,7 +1,8 @@
-import axios from 'axios';
+import axios from "axios";
 
-// Set the base URL from an environment variable (e.g., REACT_APP_API_BASE_URL)
-const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'http://localhost:3000/api';
+// Base URL from environment variable (REACT_APP_API_BASE_URL)
+const API_BASE_URL =
+  process.env.REACT_APP_API_BASE_URL || "http://localhost:3000/api";
 
 // Create an Axios instance
 const apiClient = axios.create({
@@ -10,7 +11,7 @@ const apiClient = axios.create({
 
 // Request interceptor to attach JWT token to every request if available.
 apiClient.interceptors.request.use((config) => {
-  const token = localStorage.getItem('token');
+  const token = localStorage.getItem("token");
   if (token && config.headers) {
     config.headers.Authorization = `Bearer ${token}`;
   }
@@ -29,50 +30,15 @@ export const registerUser = (data: {
   confirmPassword: string;
   publicInfo?: any;
   anonymousInfo?: any;
-}) => apiClient.post('/register', data);
-/*{
-response ->
-    "message": "User registered successfully. Please verify your email.",
-    "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY3YjY0Mzk4YzI0ZWM1MDlmZGM0MjJhZCIsInVzZXJuYW1lIjoibWFueHpvIiwiaWF0IjoxNzM5OTk4MTA1LCJleHAiOjE3NDAwMjY5MDV9.vMesqzFK-1Nl0jaC2_KGSQDOju1r-fbRG_er5vL7beI",
-    "user": {
-        "firstName": "Manzo",
-        "lastName": "Kumar",
-        "email": "manzoball@gmail.com",
-        "username": "manxzo",
-        "emailVerified": false,
-        "verificationToken": "f94d89c367a79b15c4d77d249511947e5691e3a8",
-        "createdAt": "2025-02-19T20:48:24.700Z",
-        "updatedAt": "2025-02-19T20:48:24.700Z",
-        "id": "67b64398c24ec509fdc422ad",
-        "userID": "67b64398c24ec509fdc422ad",
-        "profile": {
-            "user": "67b64398c24ec509fdc422ad",
-            "publicInfo": {
-                "bio": "Hello!",
-                "skills": [],
-                "achievements": [],
-                "portfolio": ""
-            },
-            "anonymousInfo": {
-                "anonymousIdentity": "BlackJesus",
-                "details": "Avid Coder!"
-            },
-            "createdAt": "2025-02-19T20:48:24.776Z",
-            "updatedAt": "2025-02-19T20:48:24.776Z",
-            "id": "67b64398c24ec509fdc422af",
-            "profileID": "67b64398c24ec509fdc422af"
-        }
-    }
-}*/ 
+}) => apiClient.post("/register", data);
+
 // Verify email
 export const verifyEmail = (userID: string, token: string) =>
-  apiClient.get('/verify-email', { params: { userID, token } });
-/*{
-  "message": "Email verified successfully."
-}*/
+  apiClient.get("/verify-email", { params: { userID, token } });
+
 // Request forgot password
 export const forgotPassword = (email: string) =>
-  apiClient.post('/forgot-password', { email });
+  apiClient.post("/forgot-password", { email });
 
 // Reset password
 export const resetPassword = (data: {
@@ -80,99 +46,119 @@ export const resetPassword = (data: {
   token: string;
   newPassword: string;
   confirmNewPassword: string;
-}) => apiClient.post('/reset-password', data);
+}) => apiClient.post("/reset-password", data);
 
 // Login user
 export const loginUser = (username: string, password: string) =>
-  apiClient.post('/users/login', { username, password });
+  apiClient.post("/users/login", { username, password });
 
 // Get user details
 export const getUser = (userID: string) => apiClient.get(`/user/${userID}`);
 
 // Update user profile
-export const updateProfile = (userID: string, data: { publicInfo?: any; anonymousInfo?: any }) =>
-  apiClient.put(`/profile/${userID}`, data);
+export const updateProfile = (
+  userID: string,
+  data: { publicInfo?: any; anonymousInfo?: any }
+) => apiClient.put(`/profile/${userID}`, data);
 
 // List all users (public info)
-export const listUsers = () => apiClient.get('/users');
+export const listUsers = () => apiClient.get("/users");
 
 // ===== Post Endpoints =====
 
 // Create a new post
-export const createPost = (data: { content: string; tags?: string[]; isAnonymous?: boolean }) =>
-  apiClient.post('/posts', data);
+export const createPost = (data: {
+  content: string;
+  tags?: string[];
+  isAnonymous?: boolean;
+}) => apiClient.post("/posts", data);
 
 // Get all posts
-export const getPosts = () => apiClient.get('/posts');
+export const getPosts = () => apiClient.get("/posts");
 
 // Get a single post by postID
 export const getPost = (postID: string) => apiClient.get(`/posts/${postID}`);
 
 // Update a post
-export const updatePost = (postID: string, data: { content?: string; tags?: string[]; isAnonymous?: boolean }) =>
-  apiClient.put(`/posts/${postID}`, data);
+export const updatePost = (
+  postID: string,
+  data: { content?: string; tags?: string[]; isAnonymous?: boolean }
+) => apiClient.put(`/posts/${postID}`, data);
 
 // Delete a post
-export const deletePost = (postID: string) => apiClient.delete(`/posts/${postID}`);
+export const deletePost = (postID: string) =>
+  apiClient.delete(`/posts/${postID}`);
 
 // Add a comment to a post
 export const addComment = (postID: string, content: string) =>
   apiClient.post(`/posts/${postID}/comments`, { content });
 
 // Upvote a post
-export const upvotePost = (postID: string) => apiClient.post(`/posts/${postID}/upvote`);
+export const upvotePost = (postID: string) =>
+  apiClient.post(`/posts/${postID}/upvote`);
 
 // Downvote a post
-export const downvotePost = (postID: string) => apiClient.post(`/posts/${postID}/downvote`);
+export const downvotePost = (postID: string) =>
+  apiClient.post(`/posts/${postID}/downvote`);
 
 // ===== Friend Endpoints =====
 
 // Send friend request
 export const sendFriendRequest = (friendID: string) =>
-  apiClient.post('/friends/request', { friendID });
+  apiClient.post("/friends/request", { friendID });
 
-// Get friend requests
-export const getFriendRequests = () => apiClient.get('/friends/requests');
+// Get friend requests received
+export const getFriendRequestsReceived = () =>
+  apiClient.get("/friends/requests/received");
 
-// Delete friend request
-export const deleteFriendRequest = (friendID: string) =>
-  apiClient.delete('/friends/request', { data: { friendID } });
+// Get friend requests sent
+export const getFriendRequestsSent = () =>
+  apiClient.get("/friends/requests/sent");
 
 // Accept friend request
 export const acceptFriendRequest = (friendID: string) =>
-  apiClient.post('/friends/accept', { friendID });
+  apiClient.post("/friends/accept", { friendID });
+
+// Reject friend request
+export const rejectFriendRequest = (friendID: string) =>
+  apiClient.post("/friends/reject", { friendID });
 
 // Get friends list
-export const getFriends = () => apiClient.get('/friends');
+export const getFriends = () => apiClient.get("/friends");
 
 // ===== Chat Endpoints =====
 
 // Create a new chat
 export const createChat = (recipientID: string) =>
-  apiClient.post('/chat/create', { recipientID });
+  apiClient.post("/chat/create", { recipientID });
 
 // List chats
-export const listChats = () => apiClient.get('/chats');
+export const listChats = () => apiClient.get("/chats");
 
 // Send a message in a chat
 export const sendMessage = (recipientID: string, text: string) =>
-  apiClient.post('/chat/send', { recipientID, text });
+  apiClient.post("/chat/send", { recipientID, text });
 
 // Get messages for a chat
-export const getMessages = (chatID: string) => apiClient.get(`/chat/messages/${chatID}`);
+export const getMessages = (chatID: string) =>
+  apiClient.get(`/chat/messages/${chatID}`);
 
 // Delete a message from a chat
 export const deleteMessage = (chatID: string, messageID: string) =>
   apiClient.delete(`/chat/message/${chatID}/${messageID}`);
 
 // Edit a message in a chat
-export const editMessage = (chatID: string, messageID: string, newText: string) =>
-  apiClient.put(`/chat/message/${chatID}/${messageID}`, { newText });
+export const editMessage = (
+  chatID: string,
+  messageID: string,
+  newText: string
+) => apiClient.put(`/chat/message/${chatID}/${messageID}`, { newText });
 
 // Delete an entire chat
-export const deleteChat = (chatID: string) => apiClient.delete(`/chat/${chatID}`);
+export const deleteChat = (chatID: string) =>
+  apiClient.delete(`/chat/${chatID}`);
 
-// Export all services as default for easier import
+// Export all services as default for easier import.
 export default {
   registerUser,
   verifyEmail,
@@ -191,9 +177,10 @@ export default {
   upvotePost,
   downvotePost,
   sendFriendRequest,
-  getFriendRequests,
-  deleteFriendRequest,
+  getFriendRequestsReceived,
+  getFriendRequestsSent,
   acceptFriendRequest,
+  rejectFriendRequest,
   getFriends,
   createChat,
   listChats,

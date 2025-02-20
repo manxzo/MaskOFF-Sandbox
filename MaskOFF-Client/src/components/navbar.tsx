@@ -26,7 +26,7 @@ import {
   SearchIcon,
 } from "@/components/icons";
 import { Logo } from "@/components/icons";
-import { UserConfigContext } from "@/config/UserConfig";
+import { UserConfigContext } from "@/config/GlobalConfig";
 import { logout as logoutService } from "@/services/services";
 import { useNavigate } from "react-router-dom";
 export const Navbar = () => {
@@ -158,8 +158,8 @@ export const Navbar = () => {
                   index === 2
                     ? "primary"
                     : index === siteConfig.navMenuItems.length - 1
-                    ? "danger"
-                    : "foreground"
+                      ? "danger"
+                      : "foreground"
                 }
                 href={item.href}
                 size="lg"

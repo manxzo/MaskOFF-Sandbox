@@ -1,7 +1,7 @@
 // src/pages/Friends.tsx
 import { useContext } from "react";
 import DefaultLayout from "@/layouts/default";
-import { UserConfigContext } from "@/config/UserConfig";
+import { UserConfigContext } from "@/config/GlobalConfig";
 import { Card } from "@heroui/card";
 import { useFriends } from "@/hooks/useFriends";
 import { Button } from "@heroui/button";
@@ -12,7 +12,7 @@ export const Friends = () => {
   // Global user state provides the friend list and friendRequests.
   const { user } = useContext(UserConfigContext)!;
   // The useFriends hook manages additional operations and local friend state.
-  const { acceptRequest, deleteFriendRequest,loading } = useFriends();
+  const { acceptRequest, deleteFriendRequest, loading } = useFriends();
   const { friendRequests } = user;
   const navigate = useNavigate();
 
@@ -27,7 +27,10 @@ export const Friends = () => {
             <p>No friends yet.</p>
           ) : (
             user.friends.map((friend) => (
-              <Card key={friend.userID} className="p-4 my-2 flex items-center justify-between">
+              <Card
+                key={friend.userID}
+                className="p-4 my-2 flex items-center justify-between"
+              >
                 <div>
                   <h3>{friend.username}</h3>
                   <p>ID: {friend.userID}</p>
@@ -61,16 +64,30 @@ export const Friends = () => {
             <p>No friend requests.</p>
           ) : (
             friendRequests.map((req) => (
-              <Card key={req.userID} className="p-4 my-2 flex items-center justify-between">
+              <Card
+                key={req.userID}
+                className="p-4 my-2 flex items-center justify-between"
+              >
                 <div>
                   <h3>{req.username}</h3>
                   <p>ID: {req.userID}</p>
                 </div>
                 <div className="flex space-x-2">
-                  <Button isIconOnly onPress={() => acceptRequest(req.userID) && deleteFriendRequest(req.userID)} isLoading={loading}>
+                  <Button
+                    isIconOnly
+                    onPress={() =>
+                      acceptRequest(req.userID) &&
+                      deleteFriendRequest(req.userID)
+                    }
+                    isLoading={loading}
+                  >
                     <HeartFilledIcon />
                   </Button>
-                  <Button isIconOnly onPress={() => deleteFriendRequest(req.userID)} isLoading={loading}>
+                  <Button
+                    isIconOnly
+                    onPress={() => deleteFriendRequest(req.userID)}
+                    isLoading={loading}
+                  >
                     <DeleteIcon />
                   </Button>
                   {/* Optionally, also allow messaging from friend requests */}

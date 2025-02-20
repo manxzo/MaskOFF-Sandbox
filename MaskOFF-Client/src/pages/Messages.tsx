@@ -5,7 +5,7 @@ import { Input } from "@heroui/input";
 import { Card, CardBody, CardHeader } from "@heroui/card";
 import { Divider } from "@heroui/divider";
 import DefaultLayout from "@/layouts/default";
-import { UserConfigContext, Chat, Friend } from "@/config/UserConfig";
+import { UserConfigContext, Chat, Friend } from "@/config/GlobalConfig";
 import { useMessages } from "@/hooks/useMessages";
 import { useChat } from "@/hooks/useChats";
 import { useLocation } from "react-router-dom";
@@ -22,8 +22,7 @@ export const Messages = () => {
   const { sendMsg, loading } = useMessages();
   const { chats: localChats } = useChat();
   // Use localChats if available, otherwise fall back to global user.chats.
-  const chats: Chat[] =
-    localChats.length > 0 ? localChats : user.chats;
+  const chats: Chat[] = localChats.length > 0 ? localChats : user.chats;
   const [selectedContact, setSelectedContact] = useState<Contact | null>(null);
   const [contacts, setContacts] = useState<Contact[]>([]);
   const [message, setMessage] = useState<string>("");
