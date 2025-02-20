@@ -1,0 +1,15 @@
+meta {
+  name: List Friend Requests
+  type: http
+  seq: 18
+}
+
+get {
+  url: {{base_url}}/friends/requests
+  body: none
+  auth: none
+}
+
+headers {
+  Authorization: Bearer {{token}}
+}

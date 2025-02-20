@@ -1,0 +1,23 @@
+meta {
+  name: Send Message
+  type: http
+  seq: 23
+}
+
+post {
+  url: {{base_url}}/chat/send
+  body: json
+  auth: none
+}
+
+headers {
+  Content-Type: application/json
+  Authorization: Bearer {{token}}
+}
+
+body:json {
+  {
+    "recipientID": "{{recipientID}}",
+    "text": "Hello, this is a message."
+  }
+}
