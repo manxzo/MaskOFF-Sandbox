@@ -30,11 +30,46 @@ export const registerUser = (data: {
   publicInfo?: any;
   anonymousInfo?: any;
 }) => apiClient.post('/register', data);
-
+/*{
+response ->
+    "message": "User registered successfully. Please verify your email.",
+    "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY3YjY0Mzk4YzI0ZWM1MDlmZGM0MjJhZCIsInVzZXJuYW1lIjoibWFueHpvIiwiaWF0IjoxNzM5OTk4MTA1LCJleHAiOjE3NDAwMjY5MDV9.vMesqzFK-1Nl0jaC2_KGSQDOju1r-fbRG_er5vL7beI",
+    "user": {
+        "firstName": "Manzo",
+        "lastName": "Kumar",
+        "email": "manzoball@gmail.com",
+        "username": "manxzo",
+        "emailVerified": false,
+        "verificationToken": "f94d89c367a79b15c4d77d249511947e5691e3a8",
+        "createdAt": "2025-02-19T20:48:24.700Z",
+        "updatedAt": "2025-02-19T20:48:24.700Z",
+        "id": "67b64398c24ec509fdc422ad",
+        "userID": "67b64398c24ec509fdc422ad",
+        "profile": {
+            "user": "67b64398c24ec509fdc422ad",
+            "publicInfo": {
+                "bio": "Hello!",
+                "skills": [],
+                "achievements": [],
+                "portfolio": ""
+            },
+            "anonymousInfo": {
+                "anonymousIdentity": "BlackJesus",
+                "details": "Avid Coder!"
+            },
+            "createdAt": "2025-02-19T20:48:24.776Z",
+            "updatedAt": "2025-02-19T20:48:24.776Z",
+            "id": "67b64398c24ec509fdc422af",
+            "profileID": "67b64398c24ec509fdc422af"
+        }
+    }
+}*/ 
 // Verify email
 export const verifyEmail = (userID: string, token: string) =>
   apiClient.get('/verify-email', { params: { userID, token } });
-
+/*{
+  "message": "Email verified successfully."
+}*/
 // Request forgot password
 export const forgotPassword = (email: string) =>
   apiClient.post('/forgot-password', { email });
