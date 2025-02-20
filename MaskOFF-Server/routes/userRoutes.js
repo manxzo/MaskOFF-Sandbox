@@ -49,10 +49,10 @@ router.post("/register", async (req, res) => {
     await newUserProfile.save();
     
     // Construct the verification URL using APP_URL from your environment.
-    const verificationUrl = `${process.env.APP_URL || "http://localhost:3000"}/verify-email?userID=${newUserAuth.userID}&token=${newUserAuth.verificationToken}`;
+    const verificationUrl = `${process.env.APP_URL || "http://localhost:3000/api"}/verify-email?userID=${newUserAuth._id}&token=${newUserAuth.verificationToken}`;
     
     // Send verification email using MailerSend API via emailUtils.
-    await sendVerificationEmail({
+    await sendVerificationEmail({  
       to: newUserAuth.email,
       toName: newUserAuth.firstName,
       username: newUserAuth.username,
@@ -111,7 +111,7 @@ router.post("/forgot-password", async (req, res) => {
     await user.save();
     
     // Construct the password reset URL.
-    const resetUrl = `${process.env.APP_URL || "http://localhost:3000"}/reset-password?userID=${user.userID}&token=${resetToken}`;
+    const resetUrl = `${process.env.APP_URL || "http://localhost:3000/api"}/reset-password?userID=${user._id}&token=${resetToken}`;
     
     // Send forgot-password email using MailerSend API via emailUtils.
     await sendForgotPasswordEmail({
