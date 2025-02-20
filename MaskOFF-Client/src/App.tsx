@@ -2,7 +2,7 @@
 
 import { Navigate, Route, Routes } from "react-router-dom";
 import { useEffect } from "react";
-import { useAuth } from "@/hooks/useAuth";
+import { useAuth } from "@/hooks/useUser";
 
 // Import your pages (ensure you create/update these pages using @heroui/react components)
 import Home from "./pages/Home";

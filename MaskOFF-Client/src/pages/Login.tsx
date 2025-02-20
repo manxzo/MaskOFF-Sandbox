@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import DefaultLayout from "@/layouts/default";
 import { Button } from "@heroui/button";
 import { Input } from "@heroui/input";
-import { useAuth } from "@/hooks/useAuth";
+import { useAuth } from "@/hooks/useUser";
 import { Link } from "@heroui/link";
 import { useNavigate } from "react-router-dom";
 

@@ -1,3 +1,4 @@
+// routes/friendRoutes.js
 const express = require("express");
 const router = express.Router();
 const UserAuth = require("../models/UserAuth");
@@ -14,17 +15,26 @@ router.post("/friends/request", verifyToken, async (req, res) => {
     const { friendID } = req.body;
     const sender = await UserAuth.findById(req.user.id);
     const recipient = await UserAuth.findById(friendID);
-    if (!recipient) return res.status(404).json({ error: "Recipient not found." });
+    if (!recipient)
+      return res.status(404).json({ error: "Recipient not found." });
 
     // Check if request already exists.
-    if (sender.friendRequestsSent.some(req => req.userID.toString() === friendID)) {
+    if (
+      sender.friendRequestsSent.some((fr) => fr.userID.toString() === friendID)
+    ) {
       return res.status(400).json({ error: "Friend request already sent." });
     }
 
     // Add to sender's friendRequestsSent.
-    sender.friendRequestsSent.push({ userID: recipient._id, username: recipient.username });
+    sender.friendRequestsSent.push({
+      userID: recipient._id,
+      username: recipient.username,
+    });
     // Add to recipient's friendRequestsReceived.
-    recipient.friendRequestsReceived.push({ userID: sender._id, username: sender.username });
+    recipient.friendRequestsReceived.push({
+      userID: sender._id,
+      username: sender.username,
+    });
     await sender.save();
     await recipient.save();
 
@@ -73,28 +83,39 @@ router.post("/friends/accept", verifyToken, async (req, res) => {
     const sender = await UserAuth.findById(friendID);
     if (!sender) return res.status(404).json({ error: "Sender not found." });
 
-    // Remove request from current user's friendRequestsReceived.
-    currentUser.friendRequestsReceived = currentUser.friendRequestsReceived.filter(
-      reqItem => reqItem.userID.toString() !== friendID
-    );
+    // Remove from current user's friendRequestsReceived.
+    currentUser.friendRequestsReceived =
+      currentUser.friendRequestsReceived.filter(
+        (fr) => fr.userID.toString() !== friendID
+      );
     // Remove from sender's friendRequestsSent.
     sender.friendRequestsSent = sender.friendRequestsSent.filter(
-      reqItem => reqItem.userID.toString() !== currentUser._id.toString()
+      (fr) => fr.userID.toString() !== currentUser._id.toString()
     );
-    
-    // Check if they are already friends
-    const alreadyFriends = currentUser.friends.some(friend => friend.userID.toString() === friendID);
+
+    // Check if they are already friends.
+    const alreadyFriends = currentUser.friends.some(
+      (f) => f.userID.toString() === friendID
+    );
     if (!alreadyFriends) {
-      // Add each to the other's friends list.
-      currentUser.friends.push({ userID: sender._id, username: sender.username });
-      sender.friends.push({ userID: currentUser._id, username: currentUser.username });
+      currentUser.friends.push({
+        userID: sender._id,
+        username: sender.username,
+      });
+      sender.friends.push({
+        userID: currentUser._id,
+        username: currentUser.username,
+      });
     }
-    
+
     await currentUser.save();
     await sender.save();
-    
+
     // Notify both users.
-    sendToUsers([req.user.id, friendID], { type: "UPDATE_DATA", update: "friends" });
+    sendToUsers([req.user.id, friendID], {
+      type: "UPDATE_DATA",
+      update: "friends",
+    });
     res.json({ message: "Friend request accepted." });
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -112,19 +133,18 @@ router.post("/friends/reject", verifyToken, async (req, res) => {
     const currentUser = await UserAuth.findById(req.user.id);
     const sender = await UserAuth.findById(friendID);
     if (!sender) return res.status(404).json({ error: "Sender not found." });
-    
-    // Remove from current user's friendRequestsReceived.
-    currentUser.friendRequestsReceived = currentUser.friendRequestsReceived.filter(
-      reqItem => reqItem.userID.toString() !== friendID
-    );
-    // Remove from sender's friendRequestsSent.
+
+    currentUser.friendRequestsReceived =
+      currentUser.friendRequestsReceived.filter(
+        (fr) => fr.userID.toString() !== friendID
+      );
     sender.friendRequestsSent = sender.friendRequestsSent.filter(
-      reqItem => reqItem.userID.toString() !== currentUser._id.toString()
+      (fr) => fr.userID.toString() !== currentUser._id.toString()
     );
-    
+
     await currentUser.save();
     await sender.save();
-    
+
     res.json({ message: "Friend request rejected." });
   } catch (err) {
     res.status(500).json({ error: err.message });

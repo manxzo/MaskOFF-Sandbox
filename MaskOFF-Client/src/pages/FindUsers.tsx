@@ -3,7 +3,7 @@ import { useEffect, useState, useContext } from "react";
 import DefaultLayout from "@/layouts/default";
 import { Card } from "@heroui/card";
 import { retrieveAllUsers } from "@/services/services";
-import { UserConfigContext } from "@/config/UserConfig";
+import { UserConfigContext } from "@/config/GlobalConfig";
 import { Button } from "@heroui/button";
 import { HeartFilledIcon } from "@/components/icons";
 import { useFriends } from "@/hooks/useFriends";

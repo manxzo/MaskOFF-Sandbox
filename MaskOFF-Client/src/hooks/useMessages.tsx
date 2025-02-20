@@ -2,8 +2,14 @@
 // This hook handles messaging operations (send, edit, delete, get messages)
 // and refreshes chat data on updates. It also listens for "refreshData" events.
 import { useState, useContext, useEffect } from "react";
-import { sendMessage, editMessage, deleteMessage, retrieveChatMessages, retrieveChats } from "@/services/services";
-import { UserConfigContext } from "@/config/UserConfig";
+import {
+  sendMessage,
+  editMessage,
+  deleteMessage,
+  retrieveChatMessages,
+  retrieveChats,
+} from "@/services/services";
+import { UserConfigContext } from "@/config/GlobalConfig";
 
 export const useMessages = () => {
   const { updateChats } = useContext(UserConfigContext)!;
@@ -66,7 +72,11 @@ export const useMessages = () => {
     }
   };
 
-  const editMsg = async (chatId: string, messageId: string, newText: string) => {
+  const editMsg = async (
+    chatId: string,
+    messageId: string,
+    newText: string
+  ) => {
     setLoading(true);
     try {
       const response = await editMessage(chatId, messageId, newText);

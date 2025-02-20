@@ -1,119 +1,47 @@
-// [Client: useChat.tsx]
-// This hook manages chat-related operations (create, delete, find, etc.).
-// It listens for the "refreshData" event to update its local chats.
-import { useState, useContext, useEffect } from "react";
-import {
-  startChat,
-  deleteChat,
-  retrieveChats,
-  retrieveChatMessages,
-} from "@/services/services";
-import { UserConfigContext } from "@/config/UserConfig";
+// src/hooks/useChats.ts
+import { useContext, useState } from "react";
+import { GlobalConfigContext } from "@/config/GlobalConfig";
+import { listChats, getMessages, sendMessage } from "../services/services";
 
-export const useChat = () => {
-  const { updateChats } = useContext(UserConfigContext)!;
-  const [error, setError] = useState<string>("");
+export const useChats = () => {
+  const context = useContext(GlobalConfigContext);
+  if (!context) throw new Error("useChats must be used within a GlobalConfigProvider");
+  const { chats, setChats } = context;
   const [loading, setLoading] = useState<boolean>(false);
-  const [chats, setChats] = useState<any[]>([]);
-  const network = import.meta.env.VITE_NETWORK_API_URL;
-  // Helper: fetch and process chats (without extra participant mapping).
-  const fetchAndProcessChats = async () => {
-    const chatsRaw = await retrieveChats();
-    const chats = await Promise.all(
-      (chatsRaw || []).map(async (chat: any) => {
-        const messages = await retrieveChatMessages(chat.chatID);
-        const mappedMessages = (messages || []).map((msg: any) => ({
-          ...msg,
-          timestamp: new Date(msg.timestamp),
-        }));
-        return {
-          ...chat,
-          createdAt: new Date(chat.createdAt),
-          updatedAt: new Date(chat.updatedAt),
-          messages: mappedMessages,
-        };
-      })
-    );
-    return chats;
-  };
+  const [error, setError] = useState<string | null>(null);
 
-  const refreshChats = async () => {
-    try {
-      const chats = await fetchAndProcessChats();
-      updateChats(chats);
-      setChats(chats);
-    } catch (err: any) {
-      setError(err.message || "Error refreshing chats");
-      throw err;
-    }
-  };
-
-  // Listen for "refreshData" events to refresh chats automatically.
-  useEffect(() => {
-    const handleRefresh = () => {
-      refreshChats();
-    };
-    window.addEventListener("refreshData", handleRefresh as EventListener);
-    return () => {
-      window.removeEventListener("refreshData", handleRefresh as EventListener);
-    };
-  }, []);
-
-  const createChat = async (recipientID: string) => {
+  const fetchChats = async () => {
     setLoading(true);
     try {
-      const response = await startChat(recipientID);
-      await refreshChats();
-      return response;
+      const res = await listChats();
+      setChats(res.data.chats);
     } catch (err: any) {
-      setError(err.message || "Error creating chat");
-      throw err;
+      setError(err.message);
     } finally {
       setLoading(false);
     }
   };
 
-  const findChat = async (otherUserId: string) => {
-    setLoading(true);
+  const fetchMessages = async (chatID: string) => {
     try {
-      const token = localStorage.getItem("token");
-      const axios = (await import("axios")).default;
-      const response = await axios.get(
-        `http://${network}/api/chat/${otherUserId}`,
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
+      const res = await getMessages(chatID);
+      setChats(prev =>
+        prev.map(chat => chat.chatID === chatID ? { ...chat, messages: res.data.messages } : chat)
       );
-      return response.data;
     } catch (err: any) {
-      setError(err.message || "Error finding chat");
-      throw err;
-    } finally {
-      setLoading(false);
+      setError(err.message);
     }
   };
 
-  const deleteChatById = async (chatId: string) => {
-    setLoading(true);
+  const sendChatMessage = async (recipientID: string, text: string) => {
     try {
-      const response = await deleteChat(chatId);
-      await refreshChats();
-      return response;
+      const res = await sendMessage(recipientID, text);
+      fetchChats();
+      return res.data.chat;
     } catch (err: any) {
-      setError(err.message || "Error deleting chat");
-      throw err;
-    } finally {
-      setLoading(false);
+      setError(err.message);
     }
   };
 
-  return {
-    createChat,
-    findChat,
-    refreshChats,
-    deleteChatById,
-    error,
-    loading,
-    chats,
-  };
+  return { chats, loading, error, fetchChats, fetchMessages, sendChatMessage };
 };

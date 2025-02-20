@@ -113,7 +113,7 @@ app.get("/api/endpoints", (req, res) => {
       // Post-related endpoints
       createPost: "POST /api/posts",
       getPosts: "GET /api/posts",
-      getPost: "GET /api/posts/:postID", // (if implemented)
+      getPost: "GET /api/posts/:postID",
       updatePost: "PUT /api/posts/:postID",
       deletePost: "DELETE /api/posts/:postID",
       addComment: "POST /api/posts/:postID/comments",
@@ -122,9 +122,10 @@ app.get("/api/endpoints", (req, res) => {
       
       // Friend-related endpoints
       friendRequest: "POST /api/friends/request",
-      friendRequests: "GET /api/friends/requests",
-      deleteFriendRequest: "DELETE /api/friends/request",
+      friendRequestsReceived: "GET /api/friends/requests/received",
+      friendRequestsSent: "GET /api/friends/requests/sent",
       acceptFriend: "POST /api/friends/accept",
+      rejectFriend: "POST /api/friends/reject",
       friends: "GET /api/friends",
       
       // Chat-related endpoints

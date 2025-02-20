@@ -14,7 +14,7 @@ const UserProfileSchema = new mongoose.Schema({
   },
   // --- Optional Anonymous Information (for MaskON mode) ---
   anonymousInfo: {
-    anonymousIdentity: { type: String, default: "" },
+    anonymousIdentity: { type: String, default: "" , unique:true, required:true },
     details:           { type: String, default: "" } // e.g., skills, hobbies, etc.
   }
 }, { timestamps: true });
