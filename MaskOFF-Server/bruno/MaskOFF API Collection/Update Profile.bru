@@ -1,0 +1,23 @@
+meta {
+  name: Update Profile
+  type: http
+  seq: 7
+}
+
+put {
+  url: {{base_url}}/profile/{{userID}}
+  body: json
+  auth: none
+}
+
+headers {
+  Content-Type: application/json
+  Authorization: Bearer {{token}}
+}
+
+body:json {
+  {
+    "publicInfo": { "bio": "Updated bio" },
+    "anonymousInfo": { "anonymousIdentity": "UpdatedAnon", "details": "New details" }
+  }
+}

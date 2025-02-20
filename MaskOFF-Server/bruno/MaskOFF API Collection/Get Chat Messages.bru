@@ -1,0 +1,15 @@
+meta {
+  name: Get Chat Messages
+  type: http
+  seq: 24
+}
+
+get {
+  url: {{base_url}}/chat/messages/{{chatID}}
+  body: none
+  auth: none
+}
+
+headers {
+  Authorization: Bearer {{token}}
+}

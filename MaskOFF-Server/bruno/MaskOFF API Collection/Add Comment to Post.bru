@@ -1,0 +1,22 @@
+meta {
+  name: Add Comment to Post
+  type: http
+  seq: 14
+}
+
+post {
+  url: {{base_url}}/posts/{{postID}}/comments
+  body: json
+  auth: none
+}
+
+headers {
+  Content-Type: application/json
+  Authorization: Bearer {{token}}
+}
+
+body:json {
+  {
+    "content": "This is a comment"
+  }
+}
