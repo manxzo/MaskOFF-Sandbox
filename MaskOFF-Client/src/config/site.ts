@@ -1,17 +1,14 @@
-// src/config/site.ts
 export const siteConfig = {
   name: "MASKoff",
   description: "A full-stack job platform with community engagement and direct messaging.",
   
-  // Navigation for users who are NOT logged in.
+  // Navigation for unauthenticated users.
   unauthenticatedNavItems: [
-    { label: "Home", href: "/home" },
-    { label: "Register", href: "/register" },
-    { label: "Login", href: "/login" }
+    { label: "Login/Register", href: "/#" },
   ],
 
-  // Navigation for logged-in users.
-  // The ':userID' portion should be dynamically replaced in your routing or client state.
+  // Navigation for authenticated users.
+  // The ':username' placeholder will be replaced with the actual username.
   authenticatedNavItems: [
     { label: "Dashboard", href: "/:username/dashboard" },
     { label: "Posts", href: "/:username/posts" },
