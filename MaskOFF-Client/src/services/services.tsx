@@ -18,18 +18,21 @@ apiClient.interceptors.request.use((config) => {
   return config;
 });
 
+export const logout = () => {
+  localStorage.removeItem("token");
+};
+
 // ===== User Endpoints =====
 
 // Register a new user
 export const registerUser = (data: {
-  firstName: string;
-  lastName: string;
+  name: string;
+  dob: Date;
   email: string;
   username: string;
   password: string;
   confirmPassword: string;
-  publicInfo?: any;
-  anonymousInfo?: any;
+  anonymousIdentity: string;
 }) => apiClient.post("/register", data);
 
 // Verify email
