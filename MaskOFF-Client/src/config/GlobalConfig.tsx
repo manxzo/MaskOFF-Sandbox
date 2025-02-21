@@ -5,8 +5,8 @@ import React, { createContext, useState, useEffect, ReactNode } from "react";
 export interface User {
   userID: string;
   username: string;
-  firstName: string;
-  lastName: string;
+  name: string;
+  dob:Date;
   publicInfo?: any;
   anonymousInfo?: any;
 }
@@ -68,7 +68,7 @@ export const GlobalConfigProvider: React.FC<GlobalConfigProviderProps> = ({
   useEffect(() => {
     // Setup WebSocket connection
     const ws = new WebSocket(
-      process.env.REACT_APP_WS_URL || "ws://localhost:3000"
+      import.meta.env.VITE_NETWORK_API_URL|| "ws://localhost:3000"
     );
 
     ws.onopen = () => {

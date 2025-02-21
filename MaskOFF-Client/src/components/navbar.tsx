@@ -8,7 +8,7 @@ import {
   NavbarItem,
 } from "@heroui/navbar";
 import clsx from "clsx";
-
+import { ThemeSwitch } from "./theme-switch";
 import { siteConfig } from "@/config/site";
 import { GlobalConfigContext } from "@/config/GlobalConfig";
 import { useNavigate } from "react-router-dom";
@@ -21,10 +21,10 @@ export const Navbar = () => {
   const { logout } = useUser();
   // Choose nav items based on authentication state.
   // If logged in, substitute ':userID' with the actual userID.
-  const navItems = token
+  const navItems = token && user?.userID
     ? siteConfig.authenticatedNavItems.map((item) => ({
         ...item,
-        href: item.href.replace(":userID", user.userID || ""),
+        href: item.href.replace(":userID", user?.userID || ""),
       }))
     : siteConfig.unauthenticatedNavItems;
 
