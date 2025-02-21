@@ -30,10 +30,12 @@ MASKoff is designed to reduce bias in the hiring process while offering a robust
 ## Features
 
 - **Authentication & Authorization**
+
   - JWT‑based authentication with secure password hashing (bcrypt)
   - Email verification and password reset flows via MailerSend
 
 - **Profile Management**
+
   - **User Authentication Schema:**  
     Manages user credentials, tokens (for email verification and password reset), and friend relationships (using a friend sub‑schema with userID and username).  
     _Registration requires: First Name, Last Name, Email, Username, Date of Birth, Password, Repeat Password, and Anonymous Identity._
@@ -41,15 +43,17 @@ MASKoff is designed to reduce bias in the hiring process while offering a robust
     Stores additional profile details such as bio, skills, achievements, and portfolio. These fields are optional and can be set during onboarding.
 
 - **Jobs**
+
   - All posts are job‑related. Each job post falls under one of two categories:
-    - **#OfferService:** For individuals offering freelance services.
-    - **#LookingFor:** For posting job positions (full‑time/part‑time) or recruitment opportunities.
+    - **#Service:** For individuals offering freelance services.
+    - **#Job:** For posting job positions (full‑time/part‑time) or recruitment opportunities.
   - **Application Process:**  
     Job posters create posts with details such as title, description, price/salary range, and contract period. Potential applicants click an **Apply/Request** button that sends an automated greeting to the job poster (e.g., “Hi [Job Poster], I am interested…”) and triggers a toast notification.
   - **Job Tracker:**  
     A dedicated tracker page (in development) will display each job post with all its details—even if the original post is later removed from the main feed—and will include action buttons to progress through the hiring process (such as Approve/Decline, Mark as Completed/Abandoned). Both job posters and applicants can use the tracker alongside ongoing chat for further communication.
 
 - **Direct Messaging**
+
   - Real‑time chat with AES‑encrypted messages via WebSocket notifications.
   - Enables ongoing communication regarding job applications and additional details.
 
@@ -62,8 +66,9 @@ MASKoff is designed to reduce bias in the hiring process while offering a robust
 ## Schema Details
 
 1. **UserAuth Schema**  
-   *Purpose:* Manage user credentials, friend relationships, and token data.  
+   _Purpose:_ Manage user credentials, friend relationships, and token data.  
    **Key Fields:**
+
    - First Name, Last Name (currently combined into a single `name` field)
    - Email, Username, Date of Birth
    - Password (and confirmation during registration)
@@ -72,17 +77,18 @@ MASKoff is designed to reduce bias in the hiring process while offering a robust
    - Tokens for email verification and password resets
 
 2. **UserProfile Schema**  
-   *Purpose:* Store additional profile details for onboarding and ongoing personalization.  
+   _Purpose:_ Store additional profile details for onboarding and ongoing personalization.  
    **Key Fields (optional during onboarding):**
-   - Bio, Skills, Achievements, Portfolio  
-   - Privacy flag to toggle between MaskON (anonymous) and MaskOFF (public) modes  
+   - Bio, Skills, Achievements, Portfolio
+   - Privacy flag to toggle between MaskON (anonymous) and MaskOFF (public) modes
    - Anonymous Info containing the Anonymous Identity (used when the user opts for MaskON)
 
 ---
 
 ## User Flow
 
-1. **Registration:**  
+1. **Registration:**
+
    - **User Create:**  
      The registration form (based on the UserAuth schema) requires First Name, Last Name, Email, Username, Date of Birth, Password, Repeat Password, and Anonymous Identity.
    - **Onboarding:**  
@@ -90,7 +96,7 @@ MASKoff is designed to reduce bias in the hiring process while offering a robust
    - **Navigation:**  
      Once onboarding is complete, users are taken to their profile page.
 
-2. **Social & Friend Features:**  
+2. **Social & Friend Features:**
    - Users can search for and add friends.
    - A friend list and friend request system allow users to manage their network.
 
@@ -99,7 +105,7 @@ MASKoff is designed to reduce bias in the hiring process while offering a robust
 ## Job Process & Tracker
 
 - **Job Posting:**  
-  Job posters create job posts with details such as title, description, price/salary range, contract period, and select a job category (either **#OfferService** or **#LookingFor**).
+  Job posters create job posts with details such as title, description, price/salary range, contract period, and select a job category (either **#Service** or **#Job**).
 
 - **Application:**  
   Potential applicants click the **Apply/Request** button on a job post. This action sends an automated greeting to the job poster and triggers a toast notification, while also adding the job post to the applicant’s tracker.
@@ -115,18 +121,20 @@ MASKoff is designed to reduce bias in the hiring process while offering a robust
 
 ## Profile Settings & Page
 
-**Display-Only Information:**  
-- First Name, Last Name  
-- Email  
-- Username  
+**Display-Only Information:**
+
+- First Name, Last Name
+- Email
+- Username
 - Date of Birth
 
-**Editable Fields:**  
-- Change Password (with confirmation)  
-- Bio  
-- Skills  
-- Achievements  
-- Portfolio (with upload capability)  
+**Editable Fields:**
+
+- Change Password (with confirmation)
+- Bio
+- Skills
+- Achievements
+- Portfolio (with upload capability)
 - Profile Toggle (MaskON / MaskOFF to switch between public and private views)
 
 ---
@@ -136,6 +144,7 @@ MASKoff is designed to reduce bias in the hiring process while offering a robust
 The backend exposes a consolidated set of endpoints:
 
 ### User & Authentication
+
 - **POST /api/register**  
   Registers a new user (creates both a UserAuth and corresponding UserProfile) and sends a verification email.
 
@@ -161,9 +170,10 @@ The backend exposes a consolidated set of endpoints:
   Retrieves a list of all users (public information).
 
 ### Jobs
+
 - **POST /api/posts**  
   Creates a new job post (including content, tags, and anonymity flag).  
-  _Tags should include either **#OfferService** or **#LookingFor**._
+  _Tags should include either **#Service** or **#Job**._
 
 - **GET /api/posts**  
   Retrieves all job posts with associated user profile information.
@@ -178,12 +188,13 @@ The backend exposes a consolidated set of endpoints:
   Deletes a job post.
 
 - **POST /api/posts/:postID/comments**  
-  *(Optional)* Adds a comment to a job post.
+  _(Optional)_ Adds a comment to a job post.
 
 - **POST /api/posts/:postID/upvote** / **downvote**  
   Allows users to vote on a job post.
 
 ### Chat & Messaging
+
 - **POST /api/chat/create**  
   Creates a new chat between users.
 
@@ -206,6 +217,7 @@ The backend exposes a consolidated set of endpoints:
   Deletes an entire chat.
 
 ### Friends
+
 - **POST /api/friends/request**  
   Sends a friend request.
 
@@ -227,15 +239,18 @@ This section details the Create, Read, Update, and Delete (CRUD) operations avai
 ### User Operations
 
 - **Create User (Registration)**
+
   - **Endpoint:** `POST /api/register`
   - **Description:** Registers a new user by creating both a UserAuth record and a corresponding UserProfile. Sends an email verification.
   - **Required Data:** First Name, Last Name, Email, Username, Date of Birth, Password, Repeat Password, and Anonymous Identity.
 
 - **Read User**
+
   - **Endpoint:** `GET /api/user/:userID`
   - **Description:** Retrieves detailed information about a specific user, including their profile details.
 
 - **Update User Profile**
+
   - **Endpoint:** `PUT /api/profile/:userID`
   - **Description:** Updates the user's profile information (e.g., bio, skills, achievements, portfolio, and privacy settings).
 
@@ -248,15 +263,16 @@ This section details the Create, Read, Update, and Delete (CRUD) operations avai
 
 - **Create Job Post**
   - **Endpoint:** `POST /api/posts`
-  - **Description:** Creates a new job post that includes content, tags, and an anonymity flag. Tags must include either **#OfferService** or **#LookingFor**.
-  
+  - **Description:** Creates a new job post that includes content, tags, and an anonymity flag. Tags must include either **#Service** or **#Job**.
 - **Read Job Posts**
+
   - **Endpoint:** `GET /api/posts`
   - **Description:** Retrieves a list of all job posts with associated user profile information.
   - **Endpoint:** `GET /api/posts/:postID`
   - **Description:** Retrieves detailed information for a specific job post.
 
 - **Update Job Post**
+
   - **Endpoint:** `PUT /api/posts/:postID`
   - **Description:** Updates the content, tags, or anonymity flag of a specific job post.
 
@@ -269,22 +285,27 @@ This section details the Create, Read, Update, and Delete (CRUD) operations avai
 ### Chat Operations
 
 - **Create Chat**
+
   - **Endpoint:** `POST /api/chat/create`
   - **Description:** Explicitly creates a new chat between two users.
 
 - **Send Message**
+
   - **Endpoint:** `POST /api/chat/send`
   - **Description:** Sends a message within a chat. If a chat between the users does not exist, one is automatically created.
 
 - **Read Chat Messages**
+
   - **Endpoint:** `GET /api/chat/messages/:chatID`
   - **Description:** Retrieves all decrypted messages for a specific chat.
 
 - **Update Message**
+
   - **Endpoint:** `PUT /api/chat/message/:chatID/:messageID`
   - **Description:** Edits an existing message within a chat.
 
 - **Delete Message**
+
   - **Endpoint:** `DELETE /api/chat/message/:chatID/:messageID`
   - **Description:** Deletes a specific message from a chat.
 
@@ -297,15 +318,18 @@ This section details the Create, Read, Update, and Delete (CRUD) operations avai
 ### Friend Operations
 
 - **Send Friend Request**
+
   - **Endpoint:** `POST /api/friends/request`
   - **Description:** Sends a friend request to another user.
 
 - **Read Friend Requests**
+
   - **Endpoint:** `GET /api/friends/requests/received`
   - **Endpoint:** `GET /api/friends/requests/sent`
   - **Description:** Retrieves a list of friend requests that have been received or sent.
 
 - **Update Friend Request (Accept/Reject)**
+
   - **Endpoint:** `POST /api/friends/accept`
   - **Endpoint:** `POST /api/friends/reject`
   - **Description:** Processes a friend request by either accepting or rejecting it.
@@ -314,12 +338,12 @@ This section details the Create, Read, Update, and Delete (CRUD) operations avai
   - **Endpoint:** `GET /api/friends`
   - **Description:** Retrieves the authenticated user's list of friends.
 
-
 ---
 
 ## Tech Stack
 
 ### Front-end
+
 - **React & Vite:** For a modern, fast development environment.
 - **HeroUI:** For pre‑styled UI components.
 - **Tailwind CSS & Tailwind‑Variants:** For utility‑first styling.
@@ -328,6 +352,7 @@ This section details the Create, Read, Update, and Delete (CRUD) operations avai
 - **Context API & Custom Hooks:** For state, theme, and user management.
 
 ### Back-end
+
 - **Node.js & Express:** For RESTful API development.
 - **MongoDB & Mongoose:** For data modeling and persistence.
 - **JWT & bcrypt:** For secure authentication.
@@ -343,6 +368,7 @@ This section details the Create, Read, Update, and Delete (CRUD) operations avai
    ```bash
    git clone https://your-repo-url.git
    cd your-repo-directory
+   ```
 
 ## Attributions
 
@@ -360,4 +386,3 @@ This section details the Create, Read, Update, and Delete (CRUD) operations avai
 ## Contact
 
 For any questions, feedback, or further information about MASKoff, please reach out via email at [app.MaskOFF@gmail.com](mailto:app.MaskOFF@gmail.com). We welcome contributions and suggestions from the community. You can also open an issue in our repository for any bug reports or feature requests.
-
