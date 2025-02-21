@@ -1,25 +1,30 @@
 // models/UserProfile.js
-const mongoose = require('mongoose');
+const mongoose = require("mongoose");
 
-const UserProfileSchema = new mongoose.Schema({
-  // Reference the corresponding authentication document
-  user: { type: mongoose.Schema.Types.ObjectId, ref: "UserAuth", required: true },
-  // --- Optional Public Information ---
-  publicInfo: {
-    bio:          { type: String, default: "" },
-    skills:       { type: [String], default: [] },
-    achievements: { type: [String], default: [] },
-    portfolio:    { type: String, default: "" }
-    // Add any additional public fields here
+const UserProfileSchema = new mongoose.Schema(
+  {
+    user: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "UserAuth",
+      required: true,
+    },
+    privacy: { type: Boolean, default: false },
+    // Optional public info
+    publicInfo: {
+      bio: { type: String, default: "" },
+      skills: { type: [String], default: [] },
+      achievements: { type: [String], default: [] },
+      portfolio: { type: String, default: "" },
+    },
+    // Anonymous info (MaskON mode)
+    anonymousInfo: {
+      anonymousIdentity: { type: String, unique: true, required: true },
+      details: { type: String, default: "" },
+    },
   },
-  // --- Optional Anonymous Information (for MaskON mode) ---
-  anonymousInfo: {
-    anonymousIdentity: { type: String, default: "" , unique:true, required:true },
-    details:           { type: String, default: "" } // e.g., skills, hobbies, etc.
-  }
-}, { timestamps: true });
+  { timestamps: true }
+);
 
-// Virtual: Expose a friendly profileID
 UserProfileSchema.set("toJSON", {
   virtuals: true,
   transform: (doc, ret) => {
