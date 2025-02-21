@@ -90,12 +90,9 @@ router.post("/register", async (req, res) => {
       supportEmail: process.env.SUPPORT_EMAIL || "support@domain.com",
     });
 
-    // 8. (Optional) Generate JWT for immediate login
-    const token = generateToken(newUserAuth);
 
     return res.status(201).json({
       message: "User registered successfully. Please verify your email.",
-      token,
       user: {
         ...newUserAuth.toJSON(),
         profile: newUserProfile.toJSON()

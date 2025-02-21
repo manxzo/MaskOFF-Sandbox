@@ -16,15 +16,7 @@ export const useUser = ()=> {
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
 
-  const register = async (data: {
-    name: string;
-    dob: Date;
-    email: string;
-    username: string;
-    password: string;
-    confirmPassword: string;
-    anonymousIdentity: string;
-  }) => {
+  const register = async (data) => {
     setLoading(true);
     setError(null);
     try {
