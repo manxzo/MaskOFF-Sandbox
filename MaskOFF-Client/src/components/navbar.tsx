@@ -21,10 +21,10 @@ export const Navbar = () => {
   const { logout } = useUser();
   // Choose nav items based on authentication state.
   // If logged in, substitute ':userID' with the actual userID.
-  const navItems = token && user?.userID
+  const navItems = token && user?.username
     ? siteConfig.authenticatedNavItems.map((item) => ({
         ...item,
-        href: item.href.replace(":userID", user?.userID || ""),
+        href: item.href.replace(":username", user?.username || ""),
       }))
     : siteConfig.unauthenticatedNavItems;
 
@@ -35,7 +35,7 @@ export const Navbar = () => {
   };
 
   return (
-    <HeroUINavbar maxWidth="xl" position="sticky">
+    <HeroUINavbar maxWidth="xl" position="sticky" className="border-b-2 border-default-500">
       <NavbarContent justify="start">
         <NavbarBrand>
           <Link color="foreground" href="/home">
@@ -62,6 +62,7 @@ export const Navbar = () => {
             )}
           </NavbarItem>
         ))}
+        <ThemeSwitch/>
       </NavbarContent>
     </HeroUINavbar>
   );

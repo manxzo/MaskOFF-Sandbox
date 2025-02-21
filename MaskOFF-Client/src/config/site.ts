@@ -13,12 +13,12 @@ export const siteConfig = {
   // Navigation for logged-in users.
   // The ':userID' portion should be dynamically replaced in your routing or client state.
   authenticatedNavItems: [
-    { label: "Dashboard", href: "/:userID/dashboard" },
-    { label: "Posts", href: "/:userID/posts" },
-    { label: "Find Users", href: "/:userID/find-users" },
-    { label: "Friend List", href: "/:userID/friends" },
-    { label: "Messages", href: "/:userID/messages" },
-    { label: "Profile", href: "/:userID/profile" },
+    { label: "Dashboard", href: "/:username/dashboard" },
+    { label: "Posts", href: "/:username/posts" },
+    { label: "Find Users", href: "/:username/find-users" },
+    { label: "Friend List", href: "/:username/friends" },
+    { label: "Messages", href: "/:username/messages" },
+    { label: "Profile", href: "/:username/profile" },
     { label: "Logout", href: "/logout" }
   ]
 };
