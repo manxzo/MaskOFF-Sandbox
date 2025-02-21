@@ -1,6 +1,6 @@
 # MASKoff
 
-MASKoff is a full-stack MERN job platform that combines job searching with community engagement and messaging features. The app empowers job seekers and employers by offering customizable profiles, secure real-time messaging, community posts, and integrated interview scheduling—all with robust role-based authentication.
+MASKoff is a full‑stack MERN platform that combines job searching, professional engagement, and secure real‑time messaging. It provides customizable user profiles (with both public and anonymous modes), encrypted chat, friend management, and an integrated job process—all centered around job posts.
 
 ---
 
@@ -8,11 +8,12 @@ MASKoff is a full-stack MERN job platform that combines job searching with commu
 
 - [Overview](#overview)
 - [Features](#features)
-- [User Stories](#user-stories)
-- [Wireframe](#wireframe)
-- [Model (ERD)](#model-erd)
-- [API Routes](#api-routes)
-- [Express Auth](#express-auth)
+- [Schema Details](#schema-details)
+- [User Flow](#user-flow)
+- [Job Process & Tracker](#job-process--tracker)
+- [Profile Settings & Page](#profile-settings--page)
+- [API Endpoints](#api-endpoints)
+- [CRUD Operations](#crud-operations)
 - [Tech Stack](#tech-stack)
 - [Installation & Setup](#installation--setup)
 - [Attributions](#attributions)
@@ -22,193 +23,341 @@ MASKoff is a full-stack MERN job platform that combines job searching with commu
 
 ## Overview
 
-MASKoff is designed to reduce bias in the hiring process while empowering both job seekers and employers. The platform supports three types of logins:
-
-- **User:** Job seekers with customizable profiles.
-- **Enterprise (Recruiters):** Employers who post jobs and schedule interviews.
-- **Admin:** Overseers with management and moderation capabilities.
-
-Key functionalities include:
-- **Community Posts & Comments:** Users can create, read, update, and delete posts and comments.
-- **Direct Messaging:** Secure, encrypted real-time chat between users.
-- **Profile Privacy:** Users can choose which parts of their profile to share on a per-application basis.
-- **Job Posting & Interview Scheduling:** Recruiters can post job opportunities and set up interviews via an integrated calendar.
+MASKoff is designed to reduce bias in the hiring process while offering a robust platform for job seekers and employers alike. With integrated real‑time messaging (AES‑encrypted) and a dynamic feed of job posts, users can build personalized profiles and engage in professional networking and job-related transactions—all in one place.
 
 ---
 
 ## Features
 
-- **Authentication & Role-Based Access**
-  - Multi-role login (User, Enterprise, Admin)
-  - JWT-based authentication and secure password handling via bcrypt
+- **Authentication & Authorization**
+  - JWT‑based authentication with secure password hashing (bcrypt)
+  - Email verification and password reset flows via MailerSend
 
-- **User Profile Customization**
-  - Customizable profiles with per-application privacy settings
-  - Tailored views for recruiters
+- **Profile Management**
+  - **User Authentication Schema:**  
+    Manages user credentials, tokens (for email verification and password reset), and friend relationships (using a friend sub‑schema with userID and username).  
+    _Registration requires: First Name, Last Name, Email, Username, Date of Birth, Password, Repeat Password, and Anonymous Identity._
+  - **User Profile Schema:**  
+    Stores additional profile details such as bio, skills, achievements, and portfolio. These fields are optional and can be set during onboarding.
 
-- **Community Posts & Comments**
-  - Full CRUD functionality for posts and comments
-  - Seamless navigation between list and details pages
-
-- **Direct Messaging**
-  - End-to-end encryption for messages using AES encryption
-  - CRUD operations on chat messages (send, update, delete)
-
-- **Job Posting & Interview Scheduling**
-  - Dedicated interfaces for job postings
-  - Integrated calendar for scheduling interviews
-
-- **Security & Scalability**
-  - RESTful API built with Node.js and Express
-  - MongoDB for data persistence
-  - Comprehensive error handling and response codes
-
----
-
-## User Stories
-
-- **Account Management**
-  - *As a guest,* I should be able to create an account so that I can access MASKoff features.
-  - *As a new user,* I should be able to log in to my account and receive a JWT token to access protected routes.
-  - *As a user,* I should be able to log out, which will remove my token and end my session.
-
-- **Profile Customization**
-  - *As a user,* I should be able to update my profile details, including selecting which information to share for specific job applications.
-  - *As a user,* I should be able to view my profile with both public and private sections clearly separated.
-
-- **Community Engagement**
-  - *As a user,* I should be able to **create** a community post.
-  - *As a user,* I should be able to view a **list** of all community posts on a “List” page.
-  - *As a user,* clicking on a post in the “List” page should navigate me to a post’s **“Details”** page, where I can see the full content and any associated comments.
-  - *As a user,* I should be able to add, edit, and delete comments on posts.
-  - *As the author of a post,* I should see options to **edit** or **delete** my post.
-
-- **Job Posting & Interview Scheduling**
-  - *As a recruiter,* I should be able to create and manage job posts.
-  - *As a recruiter,* I should be able to schedule interviews through an integrated calendar.
-  - *As a user,* I should be able to apply for jobs while keeping certain profile details private.
+- **Jobs**
+  - All posts are job‑related. Each job post falls under one of two categories:
+    - **#OfferService:** For individuals offering freelance services.
+    - **#LookingFor:** For posting job positions (full‑time/part‑time) or recruitment opportunities.
+  - **Application Process:**  
+    Job posters create posts with details such as title, description, price/salary range, and contract period. Potential applicants click an **Apply/Request** button that sends an automated greeting to the job poster (e.g., “Hi [Job Poster], I am interested…”) and triggers a toast notification.
+  - **Job Tracker:**  
+    A dedicated tracker page (in development) will display each job post with all its details—even if the original post is later removed from the main feed—and will include action buttons to progress through the hiring process (such as Approve/Decline, Mark as Completed/Abandoned). Both job posters and applicants can use the tracker alongside ongoing chat for further communication.
 
 - **Direct Messaging**
-  - *As a user,* I should be able to send, receive, update, and delete messages in a real-time chat interface.
-  - *As a user,* I should have my messages encrypted using AES encryption for security.
+  - Real‑time chat with AES‑encrypted messages via WebSocket notifications.
+  - Enables ongoing communication regarding job applications and additional details.
 
-- **Administrative Functions**
-  - *As an admin,* I should be able to monitor and manage users, posts, and messages for moderation purposes.
-  - *As an admin,* I should have the ability to restrict or remove content that violates community guidelines.
-
----
-
-## Wireframe
-
-### React Router
-
-| URI                           | Use Case                                       |
-| ----------------------------- | ---------------------------------------------- |
-| `/signup`                     | Form to create a new account                   |
-| `/login`                      | Log in to the system                           |
-| `/home`                       | Landing page and community post feed           |
-| `/posts/new`                  | Form to create a new community post            |
-| `/posts`                      | List all community posts                       |
-| `/posts/:postId`              | View a single post (Details page)              |
-| `/posts/:postId/edit`         | Edit a post                                    |
-| `/posts/:postId/comments`     | Create a comment on a post                     |
-| `/jobs/new`                   | Form to create a new job post (Recruiters only)  |
-| `/jobs`                       | List all job posts                             |
-| `/messages`                   | List direct messages                           |
-| `/messages/:chatId`           | View a chat conversation                       |
-
-### Components & Architecture
-
-- **Pages:** Components mapped to routes (signup, login, home, posts, jobs, messages).
-- **Components:** 
-  - **State/Props:** Managed via React hooks (`useState`, `useEffect`, Context API).
-  - **Data Fetching:** 
-    - On page load using `useEffect`
-    - On interactions (e.g., button clicks) using event handlers.
-- **Forms:** Implemented as controlled components.
-- **Services:** API calls via Axios.
+- **Friend Management**
+  - Send, accept, or reject friend requests.
+  - View and manage a consolidated friend list.
 
 ---
 
-## Model (ERD)
+## Schema Details
 
-### User
+1. **UserAuth Schema**  
+   *Purpose:* Manage user credentials, friend relationships, and token data.  
+   **Key Fields:**
+   - First Name, Last Name (currently combined into a single `name` field)
+   - Email, Username, Date of Birth
+   - Password (and confirmation during registration)
+   - Anonymous Identity
+   - Arrays for friendRequestsSent, friendRequestsReceived, and friends (using a sub‑schema with userID and username)
+   - Tokens for email verification and password resets
 
-| id  | username | password | role      |
-| --- | -------- | -------- | --------- |
-| 001 | manzo    | ****     | admin     |
-| 002 | ken      | ****     | recruiter |
-| 003 | shawn    | ****     | user      |
-
-### Post (Community Post)
-
-| id  | title         | content                    | author | comments |
-| --- | ------------- | -------------------------- | ------ | -------- |
-| 101 | First Post    | This is my first post      | 003    | []       |
-
-### Job Post
-
-| id  | title             | description             | employer | applicants |
-| --- | ----------------- | ----------------------- | -------- | ---------- |
-| 201 | Software Engineer | Looking for developers  | 002      | []         |
-
-### Chat Message (Embedded in ChatLog)
-
-| id  | sender | recipient | message content         | timestamp  |
-| --- | ------ | --------- | ----------------------- | ---------- |
-| 301 | 003    | 002       | Hi, I am interested.    | 2025-02-12 |
+2. **UserProfile Schema**  
+   *Purpose:* Store additional profile details for onboarding and ongoing personalization.  
+   **Key Fields (optional during onboarding):**
+   - Bio, Skills, Achievements, Portfolio  
+   - Privacy flag to toggle between MaskON (anonymous) and MaskOFF (public) modes  
+   - Anonymous Info containing the Anonymous Identity (used when the user opts for MaskON)
 
 ---
 
-## API Routes
+## User Flow
 
-| HTTP Method | Controller          | Response Codes                              | Request Body Example                              | URI                                   | Use Case                                |
-| ----------- | ------------------- | ------------------------------------------- | ------------------------------------------------- | ------------------------------------- | --------------------------------------- |
-| POST        | createUser          | **201:** User registered successfully<br>**400:** Missing fields<br>**409:** Username already taken<br>**500:** Server error | `{ "username": "exampleUser", "password": "StrongPassword123!" }` | `/api/newuser`                        | Create a new user account               |
-| POST        | loginUser           | **200:** Login successful<br>**400:** Missing credentials<br>**404:** User not found<br>**401:** Invalid credentials<br>**500:** Server error | `{ "username": "exampleUser", "password": "StrongPassword123!" }` | `/api/users/login`                    | Log in an existing user                 |
-| GET         | fetchUserData       | **200:** User data retrieved<br>**403:** Access denied<br>**404:** User not found<br>**500:** Server error | N/A                                             | `/api/user/:userID`                   | Fetch user data (protected route)       |
-| GET         | retrieveAllUsers    | **200:** Users retrieved<br>**500:** Server error | N/A                                             | `/api/users`                          | List all users                          |
-| POST        | startChat           | **200:** Chat created successfully<br>**500:** Server error | `{ "user1": "user1_id", "user2": "user2_id" }`      | `/api/chat/create`                    | Create a chat log between users         |
-| POST        | sendMessage         | **200:** Message sent successfully<br>**401:** Login required<br>**500:** Server error | `{ "sender": "user1_id", "recipient": "user2_id", "message": "Hello!" }` | `/chat/send`                          | Send a message                          |
-| GET         | findChats           | **200:** Chats retrieved<br>**500:** Server error | N/A                                             | `/api/chat/:userId`                   | Retrieve user chats                     |
-| GET         | seeChatLog          | **200:** Chat messages retrieved<br>**404:** Chat log not found<br>**500:** Server error | N/A                                             | `/api/chat/messages/:chatId`          | Get decrypted chat messages             |
-| DELETE      | deleteMessage       | **200/204:** Message deleted<br>**404:** Chat/message not found<br>**500:** Server error | N/A                                             | `/api/chat/message/:chatId/:messageId` | Delete a specific message               |
-| DELETE      | deleteChatLog       | **200/204:** Chat log deleted<br>**404:** Chat log not found<br>**500:** Server error | N/A                                             | `/api/chat/:chatId`                   | Delete an entire chat log               |
+1. **Registration:**  
+   - **User Create:**  
+     The registration form (based on the UserAuth schema) requires First Name, Last Name, Email, Username, Date of Birth, Password, Repeat Password, and Anonymous Identity.
+   - **Onboarding:**  
+     After registration, users are directed to an onboarding page where they can optionally add profile details (bio, skills, achievements, portfolio) via the UserProfile schema.
+   - **Navigation:**  
+     Once onboarding is complete, users are taken to their profile page.
+
+2. **Social & Friend Features:**  
+   - Users can search for and add friends.
+   - A friend list and friend request system allow users to manage their network.
 
 ---
 
-## Express Auth
+## Job Process & Tracker
 
-### User Registration
+- **Job Posting:**  
+  Job posters create job posts with details such as title, description, price/salary range, contract period, and select a job category (either **#OfferService** or **#LookingFor**).
 
-- **Endpoint:** `POST /api/newuser`
-- **Purpose:** Create a new user account.
-- **Request Body:**
-  ```json
-  {
-    "username": "exampleUser",
-    "password": "StrongPassword123!"
-  }
+- **Application:**  
+  Potential applicants click the **Apply/Request** button on a job post. This action sends an automated greeting to the job poster and triggers a toast notification, while also adding the job post to the applicant’s tracker.
+
+- **Job Tracker:**  
+  A tracker page (currently outlined in the documentation) will:
+  - Display the details of each job post (persisted even if removed from the main feed)
+  - Allow job posters to approve or decline applications and to mark a job as Completed or Abandoned
+  - Allow applicants to accept or decline job offers and view the current status of their applications
+  - Update the status in real time; if a job is completed, the applicant’s completed jobs are listed on their profile under “Completed Jobs”
+
+---
+
+## Profile Settings & Page
+
+**Display-Only Information:**  
+- First Name, Last Name  
+- Email  
+- Username  
+- Date of Birth
+
+**Editable Fields:**  
+- Change Password (with confirmation)  
+- Bio  
+- Skills  
+- Achievements  
+- Portfolio (with upload capability)  
+- Profile Toggle (MaskON / MaskOFF to switch between public and private views)
+
+---
+
+## API Endpoints
+
+The backend exposes a consolidated set of endpoints:
+
+### User & Authentication
+- **POST /api/register**  
+  Registers a new user (creates both a UserAuth and corresponding UserProfile) and sends a verification email.
+
+- **GET /api/verify-email?userID=&token=**  
+  Verifies a user’s email address.
+
+- **POST /api/forgot-password**  
+  Requests a password reset email.
+
+- **POST /api/reset-password**  
+  Resets the user’s password using a token.
+
+- **POST /api/users/login**  
+  Authenticates a user and returns a JWT.
+
+- **GET /api/user/:userID**  
+  Retrieves combined user and profile details.
+
+- **PUT /api/profile/:userID**  
+  Updates the user’s profile details.
+
+- **GET /api/users**  
+  Retrieves a list of all users (public information).
+
+### Jobs
+- **POST /api/posts**  
+  Creates a new job post (including content, tags, and anonymity flag).  
+  _Tags should include either **#OfferService** or **#LookingFor**._
+
+- **GET /api/posts**  
+  Retrieves all job posts with associated user profile information.
+
+- **GET /api/posts/:postID**  
+  Retrieves details of a specific job post.
+
+- **PUT /api/posts/:postID**  
+  Updates a job post.
+
+- **DELETE /api/posts/:postID**  
+  Deletes a job post.
+
+- **POST /api/posts/:postID/comments**  
+  *(Optional)* Adds a comment to a job post.
+
+- **POST /api/posts/:postID/upvote** / **downvote**  
+  Allows users to vote on a job post.
+
+### Chat & Messaging
+- **POST /api/chat/create**  
+  Creates a new chat between users.
+
+- **GET /api/chats**  
+  Lists all chats for the authenticated user.
+
+- **POST /api/chat/send**  
+  Sends a message (auto‑creates a chat if one doesn’t already exist).
+
+- **GET /api/chat/messages/:chatID**  
+  Retrieves decrypted messages for a specific chat.
+
+- **PUT /api/chat/message/:chatID/:messageID**  
+  Edits a specific chat message.
+
+- **DELETE /api/chat/message/:chatID/:messageID**  
+  Deletes a specific chat message.
+
+- **DELETE /api/chat/:chatID**  
+  Deletes an entire chat.
+
+### Friends
+- **POST /api/friends/request**  
+  Sends a friend request.
+
+- **GET /api/friends/requests/received** / **sent**  
+  Lists friend requests (received or sent).
+
+- **POST /api/friends/accept** / **reject**  
+  Processes friend request decisions.
+
+- **GET /api/friends**  
+  Retrieves the authenticated user’s friend list.
+
+---
+
+## CRUD Operations
+
+This section details the Create, Read, Update, and Delete (CRUD) operations available in MASKoff’s API for managing Users, Job Posts, Chats, and Friends.
+
+### User Operations
+
+- **Create User (Registration)**
+  - **Endpoint:** `POST /api/register`
+  - **Description:** Registers a new user by creating both a UserAuth record and a corresponding UserProfile. Sends an email verification.
+  - **Required Data:** First Name, Last Name, Email, Username, Date of Birth, Password, Repeat Password, and Anonymous Identity.
+
+- **Read User**
+  - **Endpoint:** `GET /api/user/:userID`
+  - **Description:** Retrieves detailed information about a specific user, including their profile details.
+
+- **Update User Profile**
+  - **Endpoint:** `PUT /api/profile/:userID`
+  - **Description:** Updates the user's profile information (e.g., bio, skills, achievements, portfolio, and privacy settings).
+
+- **Delete User**
+  - **Note:** User deletion is not explicitly implemented in the current codebase.
+
+---
+
+### Job Post Operations
+
+- **Create Job Post**
+  - **Endpoint:** `POST /api/posts`
+  - **Description:** Creates a new job post that includes content, tags, and an anonymity flag. Tags must include either **#OfferService** or **#LookingFor**.
+  
+- **Read Job Posts**
+  - **Endpoint:** `GET /api/posts`
+  - **Description:** Retrieves a list of all job posts with associated user profile information.
+  - **Endpoint:** `GET /api/posts/:postID`
+  - **Description:** Retrieves detailed information for a specific job post.
+
+- **Update Job Post**
+  - **Endpoint:** `PUT /api/posts/:postID`
+  - **Description:** Updates the content, tags, or anonymity flag of a specific job post.
+
+- **Delete Job Post**
+  - **Endpoint:** `DELETE /api/posts/:postID`
+  - **Description:** Deletes a specific job post.
+
+---
+
+### Chat Operations
+
+- **Create Chat**
+  - **Endpoint:** `POST /api/chat/create`
+  - **Description:** Explicitly creates a new chat between two users.
+
+- **Send Message**
+  - **Endpoint:** `POST /api/chat/send`
+  - **Description:** Sends a message within a chat. If a chat between the users does not exist, one is automatically created.
+
+- **Read Chat Messages**
+  - **Endpoint:** `GET /api/chat/messages/:chatID`
+  - **Description:** Retrieves all decrypted messages for a specific chat.
+
+- **Update Message**
+  - **Endpoint:** `PUT /api/chat/message/:chatID/:messageID`
+  - **Description:** Edits an existing message within a chat.
+
+- **Delete Message**
+  - **Endpoint:** `DELETE /api/chat/message/:chatID/:messageID`
+  - **Description:** Deletes a specific message from a chat.
+
+- **Delete Chat**
+  - **Endpoint:** `DELETE /api/chat/:chatID`
+  - **Description:** Deletes an entire chat conversation.
+
+---
+
+### Friend Operations
+
+- **Send Friend Request**
+  - **Endpoint:** `POST /api/friends/request`
+  - **Description:** Sends a friend request to another user.
+
+- **Read Friend Requests**
+  - **Endpoint:** `GET /api/friends/requests/received`
+  - **Endpoint:** `GET /api/friends/requests/sent`
+  - **Description:** Retrieves a list of friend requests that have been received or sent.
+
+- **Update Friend Request (Accept/Reject)**
+  - **Endpoint:** `POST /api/friends/accept`
+  - **Endpoint:** `POST /api/friends/reject`
+  - **Description:** Processes a friend request by either accepting or rejecting it.
+
+- **Read Friend List**
+  - **Endpoint:** `GET /api/friends`
+  - **Description:** Retrieves the authenticated user's list of friends.
+
 
 ---
 
 ## Tech Stack
 
-### Front-end:
-- React: For building dynamic user interfaces.
-- HeroUI: Pre-styled components (Navbar, Buttons, Inputs, etc.).
-- Tailwind CSS & Tailwind-Variants: For responsive styling.
-- React Router: For client-side routing.
-- Custom Hooks & Context API: For state and theme management.
+### Front-end
+- **React & Vite:** For a modern, fast development environment.
+- **HeroUI:** For pre‑styled UI components.
+- **Tailwind CSS & Tailwind‑Variants:** For utility‑first styling.
+- **React Router:** For client‑side navigation.
+- **Axios:** For HTTP requests.
+- **Context API & Custom Hooks:** For state, theme, and user management.
 
-### Back-end:
-- Node.js & Express: RESTful API server.
-- MongoDB & Mongoose: Database and schema management.
-- JWT & bcrypt: For authentication and password security.
-- AES Encryption: For secure messaging in chats.
+### Back-end
+- **Node.js & Express:** For RESTful API development.
+- **MongoDB & Mongoose:** For data modeling and persistence.
+- **JWT & bcrypt:** For secure authentication.
+- **AES Encryption:** For securing chat messages.
+- **WebSocket (ws):** For real‑time updates and notifications.
+- **MailerSend:** For email verification and password reset notifications.
 
-### Other Tools & Libraries:
-- Axios: For API calls.
-- clsx: For conditional class names.
-- Concurrently: To run client and server concurrently.
-- dotenv & nodemon: For environment variable management and auto-reloading.
+---
+
+## Installation & Setup
+
+1. **Clone the Repository:**
+   ```bash
+   git clone https://your-repo-url.git
+   cd your-repo-directory
+
+## Attributions
+
+- **HeroUI:** UI component library used to build the interface, providing pre‑styled and customizable React components.
+- **Tailwind CSS & Tailwind‑Variants:** For responsive, utility‑first styling that speeds up development and ensures consistency across the application.
+- **Express & Mongoose:** For building a robust RESTful API and managing interactions with the MongoDB database.
+- **JWT & bcrypt:** For secure authentication, token generation, and password management.
+- **WebSocket (ws):** For implementing real‑time messaging and live updates throughout the platform.
+- **Axios, clsx, and other libraries:** For making HTTP requests, managing conditional class names, and supporting additional functionality within the codebase.
+- **MailerSend:** For managing email notifications such as account verification and password resets.
+- **Other Tools & Dependencies:** React, Vite, Node.js, and additional development tools streamline the overall development process.
+
+---
+
+## Contact
+
+For any questions, feedback, or further information about MASKoff, please reach out via email at [app.MaskOFF@gmail.com](mailto:app.MaskOFF@gmail.com). We welcome contributions and suggestions from the community. You can also open an issue in our repository for any bug reports or feature requests.
+
