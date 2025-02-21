@@ -11,67 +11,102 @@ const { sendVerificationEmail, sendForgotPasswordEmail } = require("../component
 
 // Registration: Create UserAuth and corresponding UserProfile, then send verification email.
 router.post("/register", async (req, res) => {
-  const {
-    firstName,
-    lastName,
-    email,
-    username,
-    password,
-    confirmPassword,
-    publicInfo,
-    anonymousInfo,
-  } = req.body;
-
-  // Validate compulsory fields.
-  if (!firstName || !lastName || !email || !username || !password || !confirmPassword) {
-    return res.status(400).json({ error: "All compulsory fields are required." });
-  }
-  if (password !== confirmPassword) {
-    return res.status(400).json({ error: "Passwords do not match." });
-  }
-  
   try {
-    // Check for duplicate email or username.
-    if (await UserAuth.findOne({ email })) {
+    const {
+      name,
+      dob,
+      email,
+      username,
+      password,
+      confirmPassword,
+      anonymousIdentity // Required for the maskOFF identity
+    } = req.body;
+
+    // 1. Validate all required fields
+    if (!name || !dob || !email || !username || !password || !confirmPassword || !anonymousIdentity) {
+      return res.status(400).json({ error: "All required fields must be provided." });
+    }
+
+    // 2. Check password match
+    if (password !== confirmPassword) {
+      return res.status(400).json({ error: "Passwords do not match." });
+    }
+
+    // 3. Check age >= 16
+    const dateOfBirth = new Date(dob);
+    if (isNaN(dateOfBirth.getTime())) {
+      return res.status(400).json({ error: "Invalid date of birth format." });
+    }
+    const now = new Date();
+    const cutoffDate = new Date();
+    cutoffDate.setFullYear(now.getFullYear() - 16);
+    if (dateOfBirth > cutoffDate) {
+      return res.status(400).json({ error: "You must be at least 16 years old to register." });
+    }
+
+    // 4. Check for duplicates
+    const emailExists = await UserAuth.findOne({ email });
+    if (emailExists) {
       return res.status(409).json({ error: "Email already in use." });
     }
-    if (await UserAuth.findOne({ username })) {
+    const usernameExists = await UserAuth.findOne({ username });
+    if (usernameExists) {
       return res.status(409).json({ error: "Username already taken." });
     }
-    
-    // Create authentication document.
-    const newUserAuth = new UserAuth({ firstName, lastName, email, username, password });
-    newUserAuth.generateVerificationToken(); // Generate token for email verification.
+    const anonymousIdentityExists = await UserProfile.findOne({ 'anonymousInfo.anonymousIdentity': anonymousIdentity });
+    if (anonymousIdentityExists) {
+      return res.status(409).json({ error: "This MaskOFF ID is already taken." });
+    }
+
+    // 5. Create the user
+    const newUserAuth = new UserAuth({
+      name,
+      dob: dateOfBirth,
+      email,
+      username,
+      password
+    });
+    newUserAuth.generateVerificationToken(); // generate a verification token
     await newUserAuth.save();
-    
-    // Create corresponding profile document.
-    const newUserProfile = new UserProfile({ user: newUserAuth._id, publicInfo, anonymousInfo });
+
+    // 6. Create the profile
+    // Only anonymousIdentity is mandatory for the "anonymousInfo"
+    const newUserProfile = new UserProfile({
+      user: newUserAuth._id,
+      anonymousInfo: {
+        anonymousIdentity
+      }
+      // publicInfo, etc. remain optional
+    });
     await newUserProfile.save();
-    
-    // Construct the verification URL using APP_URL from your environment.
+
+    // 7. Send verification email
     const verificationUrl = `${process.env.APP_URL || "http://localhost:3000/api"}/verify-email?userID=${newUserAuth._id}&token=${newUserAuth.verificationToken}`;
-    
-    // Send verification email using MailerSend API via emailUtils.
-    await sendVerificationEmail({  
+    await sendVerificationEmail({
       to: newUserAuth.email,
-      toName: newUserAuth.firstName,
+      toName: newUserAuth.name,
       username: newUserAuth.username,
       verifyUrl: verificationUrl,
       supportEmail: process.env.SUPPORT_EMAIL || "support@domain.com",
     });
-    
-    // Generate JWT token for immediate login (optional).
+
+    // 8. (Optional) Generate JWT for immediate login
     const token = generateToken(newUserAuth);
-    res.status(201).json({
+
+    return res.status(201).json({
       message: "User registered successfully. Please verify your email.",
       token,
-      user: { ...newUserAuth.toJSON(), profile: newUserProfile.toJSON() },
+      user: {
+        ...newUserAuth.toJSON(),
+        profile: newUserProfile.toJSON()
+      }
     });
   } catch (err) {
     console.error("Registration error:", err);
-    res.status(500).json({ error: err.message });
+    return res.status(500).json({ error: err.message });
   }
 });
+
 
 // Email Verification Route
 router.get("/verify-email", async (req, res) => {
