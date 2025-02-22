@@ -36,6 +36,7 @@ export interface GlobalConfig {
   friends: Friend[];
   friendRequestsSent: Friend[];
   friendRequestsReceived: Friend[];
+  error:String;
 }
 
 export interface GlobalConfigContextType extends GlobalConfig {
@@ -44,6 +45,7 @@ export interface GlobalConfigContextType extends GlobalConfig {
   setFriends: React.Dispatch<React.SetStateAction<Friend[]>>;
   setFriendRequestsSent: React.Dispatch<React.SetStateAction<Friend[]>>;
   setFriendRequestsReceived: React.Dispatch<React.SetStateAction<Friend[]>>;
+  setError: React.Dispatch<React.SetStateAction<String | null>>;
 }
 
 export const GlobalConfigContext = createContext<
@@ -64,7 +66,7 @@ export const GlobalConfigProvider: React.FC<GlobalConfigProviderProps> = ({
   const [friendRequestsReceived, setFriendRequestsReceived] = useState<
     Friend[]
   >([]);
-
+  const [error, setError] = useState<string | null>(null);
   useEffect(() => {
     // Setup WebSocket connection
     const ws = new WebSocket(
@@ -109,6 +111,7 @@ export const GlobalConfigProvider: React.FC<GlobalConfigProviderProps> = ({
     setFriends,
     setFriendRequestsSent,
     setFriendRequestsReceived,
+    error,setError
   };
 
   return (
