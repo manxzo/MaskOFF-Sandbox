@@ -33,7 +33,9 @@ router.post("/register", async (req, res) => {
     if (password !== confirmPassword) {
       return res.status(400).json({ error: "Passwords do not match." });
     }
-
+    if (password.length<8) {
+      return res.status(400).json({ error: "Password too short." });
+    }
     // 3. Check age >= 16
     const dateOfBirth = new Date(dob);
     if (isNaN(dateOfBirth.getTime())) {

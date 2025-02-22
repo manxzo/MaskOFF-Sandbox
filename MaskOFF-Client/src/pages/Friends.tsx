@@ -49,15 +49,16 @@ const FriendPage: React.FC = () => {
     <DefaultLayout>
            
       <Tabs aria-label="Friends">
-        <Tab key="Find Users" title="Find Users" className="grid-cols-3">
+        <Tab key="Find Users" title="Find Users" >
             {loadingUsers ? (
               <p>Loading users...</p>
             ) : filteredFriends.length === 0 ? (
               <p>No New users found.</p>
             ) : (
-              filteredFriends.map((user) => (
-                <Card>
-            <CardBody>
+                <div className="grid grid-cols-4">
+                   {filteredFriends.map((user) => (
+                <Card key={user.userID}>
+            <CardBody className="flex-row">
             <User
                 avatarProps={{
                   src: user.avatar,
@@ -70,14 +71,18 @@ const FriendPage: React.FC = () => {
                   </Link>
                 }
                 name={user.name}
+                className="flex-grow"
               />
+              <Button onPress={()=>sendRequest(user.userID)} color="danger" isIconOnly className="flex-shrink"><HeartFilledIcon/></Button>
             </CardBody>
             <CardFooter>
-                <Button onPress={()=>sendRequest(user.userID)} color="danger" isIconOnly><HeartFilledIcon/></Button>
+                
             </CardFooter>
           </Card>
                 
-              ))
+              ))}
+             
+                </div>
             )}
           
         </Tab>
@@ -86,7 +91,7 @@ const FriendPage: React.FC = () => {
               <p>No friend requests received.</p>
             ) : (
               friendRequestsReceived.map((user) => (
-                <Card>
+                <Card key={user.userID}>
             <CardBody>
             <User
                 avatarProps={{
@@ -115,7 +120,7 @@ const FriendPage: React.FC = () => {
               <p>No friend requests received.</p>
             ) : (
               friendRequestsReceived.map((user) => (
-                <Card>
+                <Card key={user.userID}>
             <CardBody>
             <User
                 avatarProps={{
@@ -143,7 +148,7 @@ const FriendPage: React.FC = () => {
               <p>You have no friends yet.</p>
             ) : (
               friends.map((user) => (
-                <Card>
+                <Card key={user.userID}>
                 <CardBody>
                 <User
                     avatarProps={{
