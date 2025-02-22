@@ -9,12 +9,12 @@ import {
   getUser,
   logout,
 } from "@/services/services";
-import { GlobalConfigContext } from "@/config/GlobalConfig"; // if using a global context
+import { GlobalConfigContext } from "@/config/GlobalConfig";
 
-export const useUser = ()=> {
+export const useUser = () => {
   const globalContext = useContext(GlobalConfigContext);
+  const{error,setError} =globalContext;
   const [loading, setLoading] = useState<boolean>(false);
-  const [error, setError] = useState<string | null>(null);
 
   const register = async (data) => {
     setLoading(true);
@@ -23,7 +23,9 @@ export const useUser = ()=> {
       const res = await registerUser(data);
       return res.data;
     } catch (err: any) {
-      setError(err.message || "Registration failed");
+      const errMsg =
+        err.response?.data?.error || err.message || "Registration failed";
+      setError(errMsg);
       throw err;
     } finally {
       setLoading(false);
@@ -37,7 +39,10 @@ export const useUser = ()=> {
       const res = await verifyEmail(userID, token);
       return res.data;
     } catch (err: any) {
-      setError(err.message || "Verification failed");
+      const errMsg =
+        err.response?.data?.error || err.message || "Verification failed";
+      setError(errMsg);
+     
       throw err;
     } finally {
       setLoading(false);
@@ -51,7 +56,10 @@ export const useUser = ()=> {
       const res = await forgotPassword(email);
       return res.data;
     } catch (err: any) {
-      setError(err.message || "Forgot password failed");
+      const errMsg =
+        err.response?.data?.error || err.message || "Forgot password failed";
+      setError(errMsg);
+     
       throw err;
     } finally {
       setLoading(false);
@@ -70,7 +78,12 @@ export const useUser = ()=> {
       const res = await resetPassword(data);
       return res.data;
     } catch (err: any) {
-      setError(err.message || "Reset password failed");
+      const errMsg =
+        err.response?.data?.error ||
+        err.message ||
+        "Reset password failed";
+      setError(errMsg);
+  
       throw err;
     } finally {
       setLoading(false);
@@ -82,13 +95,14 @@ export const useUser = ()=> {
     setError(null);
     try {
       const res = await loginUser(username, password);
-      if (globalContext) {
-        globalContext.setUser(res.data.user);
-      }
+    
       localStorage.setItem("token", res.data.token);
       return res.data;
     } catch (err: any) {
-      setError(err.message || "Login failed");
+      const errMsg =
+        err.response?.data?.error || err.message || "Login failed";
+      setError(errMsg);
+   
       throw err;
     } finally {
       setLoading(false);
@@ -100,12 +114,13 @@ export const useUser = ()=> {
     setError(null);
     try {
       const res = await getUser(userID);
-      if (globalContext) {
-        globalContext.setUser(res.data);
-      }
+  
       return res.data;
     } catch (err: any) {
-      setError(err.message || "Fetch user failed");
+      const errMsg =
+        err.response?.data?.error || err.message || "Fetch user failed";
+      setError(errMsg);
+    
       throw err;
     } finally {
       setLoading(false);
@@ -114,13 +129,9 @@ export const useUser = ()=> {
 
   const doLogout = () => {
     logout();
-    if (globalContext) {
-      globalContext.setUser(null);
-    }
   };
 
   return {
-    user: globalContext?.user,
     loading,
     error,
     register,

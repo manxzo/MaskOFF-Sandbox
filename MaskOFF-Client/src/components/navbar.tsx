@@ -15,6 +15,7 @@ import { GlobalConfigContext } from "@/config/GlobalConfig";
 import { useNavigate } from "react-router-dom";
 import { useUser } from "@/hooks/useUser";
 import { AuthModal } from "@/components/AuthModal";
+import { ThemeSwitch } from "./theme-switch";
 
 export const Navbar = () => {
   const { user } = useContext(GlobalConfigContext)!;
@@ -61,7 +62,7 @@ export const Navbar = () => {
                   <Button variant="flat" onPress={onOpen}>
                     {item.label}
                   </Button>
-                  <AuthModal onOpen={onOpen} onOpenChange={onOpenChange} isOpen={isOpen}/>
+                  <AuthModal onOpenChange={onOpenChange} isOpen={isOpen}/>
                   </>
                   
                 ) : (
@@ -76,6 +77,10 @@ export const Navbar = () => {
               )}
             </NavbarItem>
           ))}
+          <NavbarItem>
+            <ThemeSwitch/>
+          </NavbarItem>
+          
         </NavbarContent>
       </HeroUINavbar>
     </>

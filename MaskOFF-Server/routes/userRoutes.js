@@ -81,7 +81,7 @@ router.post("/register", async (req, res) => {
     await newUserProfile.save();
 
     // 7. Send verification email
-    const verificationUrl = `${process.env.APP_URL || "http://localhost:3000/api"}/verify-email?userID=${newUserAuth._id}&token=${newUserAuth.verificationToken}`;
+    const verificationUrl = `${process.env.CLIENT_URL}/verify-email?userID=${newUserAuth._id}&verifytoken=${newUserAuth.verificationToken}`;
     await sendVerificationEmail({
       to: newUserAuth.email,
       toName: newUserAuth.name,
@@ -107,18 +107,25 @@ router.post("/register", async (req, res) => {
 
 // Email Verification Route
 router.get("/verify-email", async (req, res) => {
-  const { userID, token } = req.query;
+  const { userID, token } = req.query; 
   if (!userID || !token) {
     return res.status(400).json({ error: "Missing parameters." });
   }
   try {
     const user = await UserAuth.findById(userID);
     if (!user) return res.status(404).json({ error: "User not found." });
+    
+  
+    if (user.emailVerified) {
+      return res.json({ message: "Email verified." });
+    }
+    
     if (user.verificationToken !== token) {
       return res.status(400).json({ error: "Invalid verification token." });
     }
+    
     user.emailVerified = true;
-    user.verificationToken = undefined; // Clear the token after verification.
+    user.verificationToken = undefined; 
     await user.save();
     res.json({ message: "Email verified successfully." });
   } catch (err) {
@@ -126,6 +133,7 @@ router.get("/verify-email", async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 });
+
 
 // ================== Forgot Password & Reset Password ==================
 
@@ -143,7 +151,7 @@ router.post("/forgot-password", async (req, res) => {
     await user.save();
     
     // Construct the password reset URL.
-    const resetUrl = `${process.env.APP_URL || "http://localhost:3000/api"}/reset-password?userID=${user._id}&token=${resetToken}`;
+    const resetUrl = `${process.env.CLIENT_URL}/reset-password?userID=${user._id}&token=${resetToken}&username=${user.username}`;
     
     // Send forgot-password email using MailerSend API via emailUtils.
     await sendForgotPasswordEmail({
