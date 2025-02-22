@@ -1,5 +1,5 @@
 // src/contexts/GlobalConfigContext.tsx
-import React, { createContext, useState, useEffect, ReactNode } from "react";
+import React, { createContext, useState, ReactNode } from "react";
 
 export interface Friend {
   userID: string;
@@ -85,37 +85,6 @@ export const GlobalConfigProvider: React.FC<GlobalConfigProviderProps> = ({ chil
   const [friendRequestsReceived, setFriendRequestsReceived] = useState<Friend[]>([]);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    // Setup WebSocket connection
-    const ws = new WebSocket(import.meta.env.VITE_NETWORK_API_URL || "ws://localhost:3000");
-
-    ws.onopen = () => {
-      console.log("WebSocket connected");
-      if (user) {
-        ws.send(JSON.stringify({ type: "AUTH", userID: user.userID }));
-      }
-    };
-
-    ws.onmessage = (event) => {
-      const data = JSON.parse(event.data);
-      console.log("WebSocket message received:", data);
-      // Handle different update types, e.g., update chats, friends, etc.
-    };
-
-    ws.onerror = (error) => {
-      console.error("WebSocket error:", error);
-    };
-
-    ws.onclose = () => {
-      console.log("WebSocket connection closed");
-    };
-
-    return () => {
-      if (ws.readyState === WebSocket.OPEN) {
-        ws.close();
-      }
-    };
-  }, [user]);
 
   const contextValue: GlobalConfigContextType = {
     user,
