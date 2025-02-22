@@ -25,7 +25,7 @@ export const AuthModal = ({ onOpenChange, isOpen }) => {
   const [selected, setSelected] = useState("login");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-  // Initial form states for each mode.
+
   const loginForm = { username: "", password: "" };
   const registerForm = {
     name: "",
@@ -40,7 +40,6 @@ export const AuthModal = ({ onOpenChange, isOpen }) => {
 
   const [form, setForm] = useState(loginForm);
 
-  // Update the form state when mode changes.
   useEffect(() => {
     setError(null);
     switch (selected) {
@@ -58,7 +57,6 @@ export const AuthModal = ({ onOpenChange, isOpen }) => {
     }
   }, [selected]);
 
-  // Generic change handler for text inputs.
   const handleChange = (e) => {
     const { name, value } = e.target;
     setForm((prev) => ({
@@ -75,8 +73,6 @@ export const AuthModal = ({ onOpenChange, isOpen }) => {
   };
 
 
-
-  // Handle form submission for all modes.
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError(null);

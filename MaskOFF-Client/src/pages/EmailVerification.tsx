@@ -1,6 +1,6 @@
 // src/components/EmailVerification.tsx
 import { useLocation, useNavigate } from "react-router-dom";
-import { useEffect, useState, useContext } from "react";
+import { useEffect, useState } from "react";
 import useUser from "@/hooks/useUser";
 import DefaultLayout from "@/layouts/default";
 import { title } from "@/components/primitives";
