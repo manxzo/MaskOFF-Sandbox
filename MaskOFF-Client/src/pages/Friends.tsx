@@ -3,7 +3,7 @@ import React, { useState, useEffect, useContext } from "react";
 import { listUsers } from "@/services/services";
 import useFriends from "@/hooks/useFriends";
 import { GlobalConfigContext, Friend } from "@/config/GlobalConfig";
-
+import DefaultLayout from "../layouts/default"
 const FriendPage: React.FC = () => {
   const globalContext = useContext(GlobalConfigContext);
   if (!globalContext) {
@@ -44,7 +44,8 @@ const FriendPage: React.FC = () => {
   });
 
   return (
-    <div style={{ padding: "1rem" }}>
+    <DefaultLayout>
+         <div style={{ padding: "1rem" }}>
       <h1>Friends</h1>
       <div style={{ marginBottom: "1rem" }}>
         <button onClick={() => setActiveTab("findUsers")}>Find Users</button>
@@ -118,6 +119,8 @@ const FriendPage: React.FC = () => {
         )}
       </div>
     </div>
+    </DefaultLayout>
+   
   );
 };
 

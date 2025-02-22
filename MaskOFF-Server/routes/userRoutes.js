@@ -250,7 +250,7 @@ router.get("/users", async (req, res) => {
     const userList = await Promise.all(
       users.map(async (user) => {
         return {
-          userID: user.userID,
+          userID: user._id,
           username: user.username,
         };
       })
