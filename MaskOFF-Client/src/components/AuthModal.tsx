@@ -9,24 +9,23 @@ import {
   ModalHeader,
   ModalContent,
   ModalBody,
-  ModalFooter,
   Form,
   Tab,
   Tabs,
   Link,
   DateInput,
-  ScrollShadow
+  ScrollShadow,
+  addToast
 } from "@heroui/react";
 import { parseDate } from "@internationalized/date";
 
-export const AuthModal = ({ onOpen, onOpenChange, isOpen }) => {
+export const AuthModal = ({ onOpenChange, isOpen }) => {
   const { login, register, forgotPwd } = useUser();
   const navigate = useNavigate();
   const [selected, setSelected] = useState("login");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  // Initial form states for each mode.
   const loginForm = { username: "", password: "" };
   const registerForm = {
     name: "",
@@ -41,7 +40,6 @@ export const AuthModal = ({ onOpen, onOpenChange, isOpen }) => {
 
   const [form, setForm] = useState(loginForm);
 
-  // Update the form state when mode changes.
   useEffect(() => {
     setError(null);
     switch (selected) {
@@ -59,7 +57,6 @@ export const AuthModal = ({ onOpen, onOpenChange, isOpen }) => {
     }
   }, [selected]);
 
-  // Generic change handler for text inputs.
   const handleChange = (e) => {
     const { name, value } = e.target;
     setForm((prev) => ({
@@ -68,16 +65,14 @@ export const AuthModal = ({ onOpen, onOpenChange, isOpen }) => {
     }));
   };
 
-  // Handler for DateInput change.
-  const handleDateChange = (value) => {
-    // parseDate returns an object with a toDate() method.
+  const handleDateChange = (value: any) => {
     setForm((prev) => ({
       ...prev,
-      dob: value
+      dob: value,
     }));
   };
 
-  // Handle form submission for all modes.
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError(null);
@@ -85,20 +80,9 @@ export const AuthModal = ({ onOpen, onOpenChange, isOpen }) => {
     try {
       if (selected === "login") {
         await login(form.username, form.password);
+        addToast({title:"Successfully Logged In!", description:"Welcome back to Mask!",color:"success", size:"lg"})
       } else if (selected === "register") {
-        if (!form.dob) {
-          throw new Error("Date of birth is required.");
-        }
         const dobDate = form.dob.toDate ? form.dob.toDate() : new Date(form.dob);
-        // Validate that dob is a valid date and user is at least 16.
-        if (isNaN(dobDate.getTime())) {
-          throw new Error("Invalid date format for date of birth.");
-        }
-        const cutoff = new Date();
-        cutoff.setFullYear(cutoff.getFullYear() - 16);
-        if (dobDate > cutoff) {
-          throw new Error("You must be at least 16 years old to register.");
-        }
         await register({
           name: form.name,
           dob: dobDate,
@@ -108,13 +92,15 @@ export const AuthModal = ({ onOpen, onOpenChange, isOpen }) => {
           confirmPassword: form.confirmPassword,
           anonymousIdentity: form.anonymousIdentity
         });
+        addToast({title:"Successfully Registered!", description:"Welcome to Mask!\nLogin with your new account!",color:"success", size:"lg"})
+        setSelected("login");
       } else if (selected === "forgotPassword") {
         await forgotPwd(form.email);
       }
-      // Close the modal on success.
       onOpenChange(false);
     } catch (err) {
       setError(err.message || "An error occurred.");
+      console.log(error);
     } finally {
       setLoading(false);
     }
@@ -280,7 +266,6 @@ export const AuthModal = ({ onOpen, onOpenChange, isOpen }) => {
                   </p>
                 </Form>
               )}
-              {error && <p className="text-red-500 text-sm mt-2">{error}</p>}
             </ModalBody>
           </div>
         )}

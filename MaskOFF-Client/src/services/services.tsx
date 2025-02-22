@@ -1,4 +1,5 @@
 import axios from "axios";
+import { addToast } from "@heroui/toast";
 
 // Base URL from environment variable (REACT_APP_API_BASE_URL)
 const API_BASE_URL = import.meta.env.VITE_NETWORK_API_URL || "http://localhost:3000/api";
@@ -16,7 +17,22 @@ apiClient.interceptors.request.use((config) => {
   }
   return config;
 });
-
+apiClient.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    const errorMessage =
+      error.response?.data?.error ||
+      error.message ||
+      "An error occurred";
+    addToast({
+      title: "Error",
+      description: errorMessage,
+      color: "danger",
+      size: "lg"
+    });
+    return Promise.reject(error);
+  }
+);
 export const logout = () => {
   localStorage.removeItem("token");
 };
