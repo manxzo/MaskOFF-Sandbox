@@ -13,6 +13,7 @@ import { GlobalConfigContext } from "@/config/GlobalConfig";
 
 export const useUser = () => {
   const globalContext = useContext(GlobalConfigContext);
+  const {setUser} = globalContext;
   const{error,setError} =globalContext;
   const [loading, setLoading] = useState<boolean>(false);
 
@@ -97,6 +98,7 @@ export const useUser = () => {
       const res = await loginUser(username, password);
     
       localStorage.setItem("token", res.data.token);
+      setUser(res.data.user);
       return res.data;
     } catch (err: any) {
       const errMsg =
