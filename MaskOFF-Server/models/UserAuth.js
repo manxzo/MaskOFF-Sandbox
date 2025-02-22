@@ -85,9 +85,28 @@ UserAuthSchema.set("toJSON", {
     delete ret._id;
     delete ret.__v;
     delete ret.password;
+    delete ret.resetPasswordExpires;
+    delete ret.resetPasswordToken;
+    delete ret.verificationToken;
     return ret;
   },
 });
+UserAuthSchema.methods.toPublicProfile = function () {
+  const ret = this.toObject({ virtuals: true });
+  ret.userID = ret._id;
+  delete ret._id;
+  delete ret.__v;
+  delete ret.password;
+  delete ret.resetPasswordExpires;
+  delete ret.resetPasswordToken;
+  delete ret.verificationToken;
+  delete ret.email;
+  delete ret.dob;
+  delete ret.friendRequestsReceived;
+  delete ret.friendRequestsSent;
+  return ret;
+};
+
 UserAuthSchema.set("toObject", { virtuals: true });
 
 module.exports = mongoose.model("UserAuth", UserAuthSchema);

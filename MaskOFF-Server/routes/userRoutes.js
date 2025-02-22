@@ -1,4 +1,3 @@
-// routes/userRoutes.js
 const express = require("express");
 const router = express.Router();
 const UserAuth = require("../models/UserAuth");
@@ -90,7 +89,6 @@ router.post("/register", async (req, res) => {
       supportEmail: process.env.SUPPORT_EMAIL || "support@domain.com",
     });
 
-
     return res.status(201).json({
       message: "User registered successfully. Please verify your email.",
       user: {
@@ -104,28 +102,26 @@ router.post("/register", async (req, res) => {
   }
 });
 
-
 // Email Verification Route
 router.get("/verify-email", async (req, res) => {
-  const { userID, token } = req.query; 
+  const { userID, token } = req.query;
   if (!userID || !token) {
     return res.status(400).json({ error: "Missing parameters." });
   }
   try {
     const user = await UserAuth.findById(userID);
     if (!user) return res.status(404).json({ error: "User not found." });
-    
-  
+
     if (user.emailVerified) {
       return res.json({ message: "Email verified." });
     }
-    
+
     if (user.verificationToken !== token) {
       return res.status(400).json({ error: "Invalid verification token." });
     }
-    
+
     user.emailVerified = true;
-    user.verificationToken = undefined; 
+    user.verificationToken = undefined;
     await user.save();
     res.json({ message: "Email verified successfully." });
   } catch (err) {
@@ -134,34 +130,33 @@ router.get("/verify-email", async (req, res) => {
   }
 });
 
-
 // ================== Forgot Password & Reset Password ==================
 
 // Forgot Password: Request a password reset.
 router.post("/forgot-password", async (req, res) => {
   const { email } = req.body;
   if (!email) return res.status(400).json({ error: "Email is required." });
-  
+
   try {
     const user = await UserAuth.findOne({ email });
     if (!user) return res.status(404).json({ error: "User not found." });
-    
+
     // Generate a reset token.
     const resetToken = user.generateResetPasswordToken();
     await user.save();
-    
+
     // Construct the password reset URL.
     const resetUrl = `${process.env.CLIENT_URL}/reset-password?userID=${user._id}&token=${resetToken}&username=${user.username}`;
-    
-    // Send forgot-password email using MailerSend API via emailUtils.
+
+    // Updated: Use user.name (not user.firstName) since our schema has "name"
     await sendForgotPasswordEmail({
       to: user.email,
-      toName: user.firstName,
+      toName: user.name,
       username: user.username,
       resetUrl,
       supportEmail: process.env.SUPPORT_EMAIL || "support@domain.com",
     });
-    
+
     res.json({ message: "Password reset instructions have been sent to your email." });
   } catch (err) {
     console.error("Forgot password error:", err);
@@ -178,7 +173,7 @@ router.post("/reset-password", async (req, res) => {
   if (newPassword !== confirmNewPassword) {
     return res.status(400).json({ error: "Passwords do not match." });
   }
-  
+
   try {
     const user = await UserAuth.findById(userID);
     if (!user) return res.status(404).json({ error: "User not found." });
@@ -207,7 +202,7 @@ router.post("/users/login", async (req, res) => {
     const user = await UserAuth.findOne({ username });
     if (!user) return res.status(404).json({ error: "User not found." });
     if (!(await user.isCorrectPassword(password))) return res.status(401).json({ error: "Invalid credentials." });
-    
+
     const token = generateToken(user);
     // Fetch user profile.
     const profile = await UserProfile.findOne({ user: user._id });
@@ -223,7 +218,8 @@ router.get("/user/:userID", verifyToken, async (req, res) => {
     const user = await UserAuth.findById(req.params.userID);
     if (!user) return res.status(404).json({ error: "User not found." });
     const profile = await UserProfile.findOne({ user: user._id });
-    res.json({ ...user.toJSON(), profile: profile ? profile.toJSON() : {} });
+    // Updated: Using custom instance methods for public profile conversion.
+    res.json({ ...user.toPublicProfile(), profile: profile ? profile.toPublicProfile() : {} });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -253,13 +249,9 @@ router.get("/users", async (req, res) => {
     // For each user, retrieve corresponding public profile data.
     const userList = await Promise.all(
       users.map(async (user) => {
-        const profile = await UserProfile.findOne({ user: user._id });
         return {
           userID: user.userID,
           username: user.username,
-          firstName: user.firstName,
-          lastName: user.lastName,
-          publicInfo: profile ? profile.publicInfo : {},
         };
       })
     );
