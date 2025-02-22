@@ -16,7 +16,7 @@ const App = () => {
       <Route path="/home" element={<Home />} />
       <Route path="/verify-email" element={<EmailVerification />} />
       <Route path="/reset-password" element={<ResetPasswordForm/>}/>
-      <Route path={`${username}/friends`} element={<FriendsPage/>}/>
+      <Route path={`/friends`} element={<FriendsPage/>}/>
     </Routes>
   );
 };
