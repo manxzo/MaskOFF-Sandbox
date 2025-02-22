@@ -82,9 +82,10 @@ export const AuthModal = ({ onOpenChange, isOpen }) => {
         await login(form.username, form.password);
         addToast({title:"Successfully Logged In!", description:"Welcome back to Mask!",color:"success", size:"lg"})
       } else if (selected === "register") {
+        const dobDate = form.dob.toDate ? form.dob.toDate() : new Date(form.dob);
         await register({
           name: form.name,
-          dob: form.dob,
+          dob: dobDate,
           email: form.email,
           username: form.username,
           password: form.password,
