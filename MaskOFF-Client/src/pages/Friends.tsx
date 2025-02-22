@@ -3,7 +3,8 @@ import React, { useState, useEffect, useContext } from "react";
 import { listUsers } from "@/services/services";
 import useFriends from "@/hooks/useFriends";
 import { GlobalConfigContext, Friend } from "@/config/GlobalConfig";
-import DefaultLayout from "../layouts/default"
+import DefaultLayout from "../layouts/default";
+import { Tabs,Tab,Card,CardBody,CardHeader,CardFooter,Link,User } from "@heroui/react";
 const FriendPage: React.FC = () => {
   const globalContext = useContext(GlobalConfigContext);
   if (!globalContext) {
@@ -34,12 +35,12 @@ const FriendPage: React.FC = () => {
   }, []);
 
   // Filter out the logged-in user and any user already in a friend relationship or pending request.
-  const potentialFriends = allUsers.filter((candidate) => {
+  const filteredFriends = allUsers.filter((friend) => {
     if (!user) return false;
-    if (candidate.userID === user.userID) return false;
-    const alreadySent = friendRequestsSent.some((fr) => fr.userID === candidate.userID);
-    const alreadyReceived = friendRequestsReceived.some((fr) => fr.userID === candidate.userID);
-    const alreadyFriend = friends.some((fr) => fr.userID === candidate.userID);
+    if (friend.userID === user.userID) return false;
+    const alreadySent = friendRequestsSent.some((fr) => fr.userID === friend.userID);
+    const alreadyReceived = friendRequestsReceived.some((fr) => fr.userID === friend.userID);
+    const alreadyFriend = friends.some((fr) => fr.userID === friend.userID);
     return !alreadySent && !alreadyReceived && !alreadyFriend;
   });
 
@@ -59,10 +60,10 @@ const FriendPage: React.FC = () => {
           <div>
             {loadingUsers ? (
               <p>Loading users...</p>
-            ) : potentialFriends.length === 0 ? (
+            ) : filteredFriends.length === 0 ? (
               <p>No potential friends found.</p>
             ) : (
-              potentialFriends.map((candidate) => (
+              filteredFriends.map((candidate) => (
                 <div key={candidate.userID} style={{ border: "1px solid #ccc", padding: "0.5rem", marginBottom: "0.5rem" }}>
                   <p>{candidate.username}</p>
                   <button onClick={() => sendRequest(candidate.userID)}>Add Friend</button>

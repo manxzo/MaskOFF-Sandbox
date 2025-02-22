@@ -31,6 +31,7 @@ export interface User {
   email: string;
   username: string;
   emailVerified: boolean;
+  avatar?: string; 
   friendRequestsSent: Friend[];
   friendRequestsReceived: Friend[];
   friends: Friend[];

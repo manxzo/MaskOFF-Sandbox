@@ -77,6 +77,16 @@ export const updateProfile = (
   userID: string,
   data: { publicInfo?: any; anonymousInfo?: any }
 ) => apiClient.put(`/profile/${userID}`, data);
+// Update user Avatar
+export const uploadAvatar = (avatar: File) => {
+  const formData = new FormData();
+  formData.append("avatar", avatar);
+  return apiClient.post("/upload-avatar", formData, {
+    headers: {
+      "Content-Type": "multipart/form-data",
+    },
+  });
+};
 
 // List all users (public info)
 export const listUsers = () => apiClient.get("/users");
