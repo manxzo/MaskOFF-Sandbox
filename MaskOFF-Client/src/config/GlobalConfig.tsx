@@ -4,6 +4,8 @@ import React, { createContext, useState, ReactNode } from "react";
 export interface Friend {
   userID: string;
   username: string;
+  avatar:string;
+  name:string;
 }
 
 export interface UserProfile {
