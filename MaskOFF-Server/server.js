@@ -11,11 +11,11 @@ const http = require("http");
 const cookieParser = require("cookie-parser");
 
 // Route Imports
-const userRoutes = require("./routes/userRoutes");       // Registration, login, user profile endpoints
-const friendRoutes = require("./routes/friendRoutes");     // Friend requests and friend list endpoints
-const chatRoutes = require("./routes/chatRoutes");         // Chat endpoints (create chat, send message, etc.)
-const postRoutes = require("./routes/postRoutes");         // Post endpoints (create, read, update, delete posts)
-
+const userRoutes = require("./routes/userRoutes"); // Registration, login, user profile endpoints
+const friendRoutes = require("./routes/friendRoutes"); // Friend requests and friend list endpoints
+const chatRoutes = require("./routes/chatRoutes"); // Chat endpoints (create chat, send message, etc.)
+const postRoutes = require("./routes/postRoutes"); // Post endpoints (create, read, update, delete posts)
+const jobRoutes = require("./routes/jobRoutes"); // Job endpoints (create, read, update, delete jobs)
 // Create Express app and HTTP server
 const app = express();
 const port = process.env.PORT || 3000;
@@ -51,7 +51,10 @@ const limiter = rateLimit({
 app.use(limiter);
 
 // Connect MongoDB using the URI from environment variables
-mongoose.connect(process.env.MONGODB_URI, { useNewUrlParser: true, useUnifiedTopology: true });
+mongoose.connect(process.env.MONGODB_URI, {
+  useNewUrlParser: true,
+  useUnifiedTopology: true,
+});
 mongoose.connection.on("connected", () => {
   console.log(`Connected to MongoDB: ${mongoose.connection.name}`);
 });
@@ -64,8 +67,7 @@ app.use("/api", userRoutes);
 app.use("/api", friendRoutes);
 app.use("/api", chatRoutes);
 app.use("/api", postRoutes);
-
-
+app.use("/api", jobRoutes);
 
 // Root endpoint: Provide a list of active endpoints for reference
 app.get("/", (req, res) => {
@@ -84,7 +86,7 @@ app.get("/api/endpoints", (req, res) => {
       getUser: "GET /api/user/:userID",
       updateProfile: "PUT /api/profile/:userID",
       listUsers: "GET /api/users",
-      
+
       // Post-related endpoints
       createPost: "POST /api/posts",
       getPosts: "GET /api/posts",
@@ -94,7 +96,7 @@ app.get("/api/endpoints", (req, res) => {
       addComment: "POST /api/posts/:postID/comments",
       upvotePost: "POST /api/posts/:postID/upvote",
       downvotePost: "POST /api/posts/:postID/downvote",
-      
+
       // Friend-related endpoints
       friendRequest: "POST /api/friends/request",
       friendRequestsReceived: "GET /api/friends/requests/received",
@@ -102,7 +104,7 @@ app.get("/api/endpoints", (req, res) => {
       acceptFriend: "POST /api/friends/accept",
       rejectFriend: "POST /api/friends/reject",
       friends: "GET /api/friends",
-      
+
       // Chat-related endpoints
       createChat: "POST /api/chat/create",
       listChats: "GET /api/chats",
@@ -110,7 +112,7 @@ app.get("/api/endpoints", (req, res) => {
       getMessages: "GET /api/chat/messages/:chatID",
       deleteMessage: "DELETE /api/chat/message/:chatID/:messageID",
       editMessage: "PUT /api/chat/message/:chatID/:messageID",
-      deleteChat: "DELETE /api/chat/:chatID"
+      deleteChat: "DELETE /api/chat/:chatID",
     },
   });
 });
