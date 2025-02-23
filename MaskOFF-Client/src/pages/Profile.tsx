@@ -1,6 +1,6 @@
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import { useContext, useEffect, useState } from "react";
-import { GlobalConfigContext } from "@/config/GlobalConfig"; // import interfaces
+import { GlobalConfigContext } from "@/config/GlobalConfig";
 import DefaultLayout from "@/layouts/default";
 import { Card, CardBody, Spinner } from "@heroui/react";
 import { title, subtitle } from "@/components/primitives";
@@ -8,22 +8,27 @@ import axios from "axios";
 
 const Profile = () => {
   const { username } = useParams<{ username: string | null }>();
+  const navigate = useNavigate();
   const { user } = useContext(GlobalConfigContext)!;
-  const [profileData, setProfileData] = useState(null);
+  const [profileData, setProfileData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
-  // fetch profile data using username or current user
+  // If no username is provided in the URL, redirect to the current user's profile URL.
+  useEffect(() => {
+    if (!username && user && user.username) {
+      navigate(`/profile/${user.username}`, { replace: true });
+    }
+  }, [username, user, navigate]);
+
+  // Fetch profile data using the username param (or fallback to context)
   useEffect(() => {
     const fetchProfile = async () => {
       setLoading(true);
       try {
         if (username) {
-          // use endpoint to get public profile by username
           const res = await axios.get(`/api/user/by-username/${username}`);
           setProfileData(res.data);
-          console.log(res.data);
         } else if (user) {
-          // use full details from context
           setProfileData(user.profile);
         }
       } catch (err) {
@@ -61,7 +66,7 @@ const Profile = () => {
             </CardBody>
           </Card>
         ) : (
-          <p>profile not found.</p>
+          <p>Profile not found.</p>
         )}
       </div>
     </DefaultLayout>
