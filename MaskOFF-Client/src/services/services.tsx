@@ -174,6 +174,13 @@ export const editMessage = (
 export const deleteChat = (chatID: string) =>
   apiClient.delete(`/chat/${chatID}`);
 
+// ===== Job Endpoints =====
+export const getJobs = () => apiClient.get("/jobs");
+export const getJob = (jobID: string) => apiClient.get(`/jobs/${jobID}`);
+export const createJob = (data: any) => apiClient.post("/jobs", data);
+export const updateJob = (jobID: string, data: any) => apiClient.put(`/jobs/${jobID}`, data);
+export const deleteJob = (jobID: string) => apiClient.delete(`/jobs/${jobID}`);
+
 // Export all services as default for easier import.
 export default {
   registerUser,
@@ -205,4 +212,9 @@ export default {
   deleteMessage,
   editMessage,
   deleteChat,
+  getJobs,
+  getJob,
+  createJob,
+  updateJob,
+  deleteJob,
 };

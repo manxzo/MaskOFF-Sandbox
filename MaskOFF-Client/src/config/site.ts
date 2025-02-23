@@ -11,6 +11,7 @@ export const siteConfig = {
   authenticatedNavItems: [
     { label: "Dashboard", link: "/dashboard" },
     { label: "Posts", link: "/posts" },
+    { label: "Jobs", link: "/jobs" },
     { label: "Friends", link: "/friends" },
     { label: "Chats", link: "/chat" },
     { label: "Profile", link: "/profile" },
