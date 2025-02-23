@@ -1,4 +1,4 @@
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams } from "react-router-dom";
 import { useContext, useEffect, useState } from "react";
 import { GlobalConfigContext } from "@/config/GlobalConfig";
 import DefaultLayout from "@/layouts/default";
@@ -24,13 +24,15 @@ interface PublicProfileResponse {
 
 const Profile = () => {
   const { username } = useParams<{ username: string | null }>();
-  const navigate = useNavigate();
   const { user } = useContext(GlobalConfigContext)!;
-
   const [profileData, setProfileData] = useState<PublicProfileResponse | null>(null);
   const [loading, setLoading] = useState(true);
 
-
+  useEffect(() => {
+    const fetchProfile = async () => {
+      setLoading(true);
+      try {
+        if (username) {
           // Fetch public profile by username
           const res = await axios.get<PublicProfileResponse>(`http://localhost:3000/api/user/by-username/${username}`);
           console.log("API response:", res.data);
@@ -51,8 +53,6 @@ const Profile = () => {
               },
             },
           });
-
-      
         }
       } catch (err) {
         console.error("Error fetching profile:", err);
