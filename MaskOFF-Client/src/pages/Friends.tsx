@@ -66,7 +66,7 @@ const FriendPage: React.FC = () => {
                   showFallback:true,
                 }}
                 description={
-                  <Link href={`/user/profile/${user.username}`} size="sm">
+                  <Link href={`/profile/${user.username}`} size="sm">
                     @{user.username}
                   </Link>
                 }

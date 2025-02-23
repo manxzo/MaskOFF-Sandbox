@@ -1,15 +1,15 @@
 import { useParams } from "react-router-dom";
 import { useContext, useEffect, useState } from "react";
-import { GlobalConfigContext, User, PublicProfile } from "@/config/GlobalConfig"; // import interfaces
+import { GlobalConfigContext } from "@/config/GlobalConfig"; // import interfaces
 import DefaultLayout from "@/layouts/default";
 import { Card, CardBody, Spinner } from "@heroui/react";
 import { title, subtitle } from "@/components/primitives";
 import axios from "axios";
 
 const Profile = () => {
-  const { username } = useParams<{ username?: string }>();
+  const { username } = useParams<{ username: string | null }>();
   const { user } = useContext(GlobalConfigContext)!;
-  const [profileData, setProfileData] = useState<PublicProfile | null>(null);
+  const [profileData, setProfileData] = useState(null);
   const [loading, setLoading] = useState(true);
 
   // fetch profile data using username or current user
@@ -21,9 +21,10 @@ const Profile = () => {
           // use endpoint to get public profile by username
           const res = await axios.get(`/api/user/by-username/${username}`);
           setProfileData(res.data);
+          console.log(res.data);
         } else if (user) {
           // use full details from context
-          setProfileData(user);
+          setProfileData(user.profile);
         }
       } catch (err) {
         console.error("error fetching profile:", err);
