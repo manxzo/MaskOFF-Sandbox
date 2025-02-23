@@ -2,7 +2,8 @@ import axios from "axios";
 import { addToast } from "@heroui/toast";
 
 // Base URL from environment variable (REACT_APP_API_BASE_URL)
-const API_BASE_URL = import.meta.env.VITE_NETWORK_API_URL || "http://localhost:3000/api";
+const API_BASE_URL =
+  `${import.meta.env.VITE_NETWORK_API_URL}/api` || "http://localhost:3000/api";
 
 // Create an Axios instance
 const apiClient = axios.create({
@@ -21,14 +22,12 @@ apiClient.interceptors.response.use(
   (response) => response,
   (error) => {
     const errorMessage =
-      error.response?.data?.error ||
-      error.message ||
-      "An error occurred";
+      error.response?.data?.error || error.message || "An error occurred";
     addToast({
       title: "Error",
       description: errorMessage,
       color: "danger",
-      size: "lg"
+      size: "lg",
     });
     return Promise.reject(error);
   }
@@ -78,6 +77,16 @@ export const updateProfile = (
   userID: string,
   data: { publicInfo?: any; anonymousInfo?: any }
 ) => apiClient.put(`/profile/${userID}`, data);
+// Update user Avatar
+export const uploadAvatar = (avatar: File) => {
+  const formData = new FormData();
+  formData.append("avatar", avatar);
+  return apiClient.post("/upload-avatar", formData, {
+    headers: {
+      "Content-Type": "multipart/form-data",
+    },
+  });
+};
 
 // List all users (public info)
 export const listUsers = () => apiClient.get("/users");

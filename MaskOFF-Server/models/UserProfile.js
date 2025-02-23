@@ -34,6 +34,18 @@ UserProfileSchema.set("toJSON", {
     return ret;
   },
 });
+
+UserProfileSchema.methods.toPublicProfile = function () {
+  const ret = this.toObject({ virtuals: true });
+  ret.profileID = ret._id;
+  delete ret._id;
+  delete ret.__v;
+  delete ret.anonymousInfo;
+  if (ret.privacy) {
+    delete ret.publicInfo;
+  }
+  return ret;
+};
 UserProfileSchema.set("toObject", { virtuals: true });
 
 module.exports = mongoose.model("UserProfile", UserProfileSchema);

@@ -65,32 +65,7 @@ app.use("/api", friendRoutes);
 app.use("/api", chatRoutes);
 app.use("/api", postRoutes);
 
-// New Route: Get a list of all users (public info only)
-// For security, only return basic info (userID, username, firstName, lastName, public profile)
-const UserAuth = require("./models/UserAuth");
-const UserProfile = require("./models/UserProfile");
-app.get("/api/users", async (req, res) => {
-  try {
-    // Retrieve all users from authentication collection
-    const users = await UserAuth.find({});
-    // For each user, get their corresponding public profile
-    const userList = await Promise.all(
-      users.map(async (user) => {
-        const profile = await UserProfile.findOne({ user: user._id });
-        return {
-          userID: user.userID,
-          username: user.username,
-          firstName: user.firstName,
-          lastName: user.lastName,
-          publicInfo: profile ? profile.publicInfo : {},
-        };
-      })
-    );
-    res.json({ users: userList });
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-});
+
 
 // Root endpoint: Provide a list of active endpoints for reference
 app.get("/", (req, res) => {
