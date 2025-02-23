@@ -1,11 +1,13 @@
 // src/contexts/GlobalConfigContext.tsx
-import React, { createContext, useState, ReactNode } from "react";
+import React, { createContext, useState, useEffect, ReactNode } from "react";
+import { getUser } from "@/services/services";
+import {jwtDecode} from "jwt-decode";
 
 export interface Friend {
   userID: string;
   username: string;
-  avatar:string;
-  name:string;
+  avatar: string;
+  name: string;
 }
 
 export interface UserProfile {
@@ -33,7 +35,7 @@ export interface User {
   email: string;
   username: string;
   emailVerified: boolean;
-  avatar?: string; 
+  avatar?: string;
   friendRequestsSent: Friend[];
   friendRequestsReceived: Friend[];
   friends: Friend[];
@@ -56,16 +58,13 @@ export interface Chat {
   messages: Message[];
 }
 
-export interface GlobalConfig {
+export interface GlobalConfigContextType {
   user: User | null;
   chats: Chat[];
   friends: Friend[];
   friendRequestsSent: Friend[];
   friendRequestsReceived: Friend[];
   error: string | null;
-}
-
-export interface GlobalConfigContextType extends GlobalConfig {
   setUser: React.Dispatch<React.SetStateAction<User | null>>;
   setChats: React.Dispatch<React.SetStateAction<Chat[]>>;
   setFriends: React.Dispatch<React.SetStateAction<Friend[]>>;
@@ -76,11 +75,14 @@ export interface GlobalConfigContextType extends GlobalConfig {
 
 export const GlobalConfigContext = createContext<GlobalConfigContextType | undefined>(undefined);
 
-interface GlobalConfigProviderProps {
-  children: ReactNode;
+
+interface JwtPayload {
+  id: string;
+  username: string;
+  exp: number;
 }
 
-export const GlobalConfigProvider: React.FC<GlobalConfigProviderProps> = ({ children }) => {
+export const GlobalConfigProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [chats, setChats] = useState<Chat[]>([]);
   const [friends, setFriends] = useState<Friend[]>([]);
@@ -88,6 +90,30 @@ export const GlobalConfigProvider: React.FC<GlobalConfigProviderProps> = ({ chil
   const [friendRequestsReceived, setFriendRequestsReceived] = useState<Friend[]>([]);
   const [error, setError] = useState<string | null>(null);
 
+ 
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    if (token) {
+      try {
+        const decoded = jwtDecode<JwtPayload>(token);
+        if (decoded.exp * 1000 < Date.now()) {
+          localStorage.removeItem("token");
+          return;
+        }
+        getUser(decoded.id)
+          .then((res) => {
+            setUser(res.data);
+          })
+          .catch((err) => {
+            console.error("Error reloading:", err);
+            localStorage.removeItem("token");
+          });
+      } catch (err) {
+        console.error("Error decoding token:", err);
+        localStorage.removeItem("token");
+      }
+    }
+  }, []);
 
   const contextValue: GlobalConfigContextType = {
     user,
@@ -95,12 +121,12 @@ export const GlobalConfigProvider: React.FC<GlobalConfigProviderProps> = ({ chil
     friends,
     friendRequestsSent,
     friendRequestsReceived,
+    error,
     setUser,
     setChats,
     setFriends,
     setFriendRequestsSent,
     setFriendRequestsReceived,
-    error,
     setError,
   };
 

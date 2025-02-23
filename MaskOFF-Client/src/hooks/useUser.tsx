@@ -1,5 +1,5 @@
 // src/hooks/useUser.tsx
-import { useState, useContext } from "react";
+import { useState, useContext,useEffect } from "react";
 import {
   registerUser,
   verifyEmail,
