@@ -4,6 +4,7 @@ import useJobs from "@/hooks/useJobs";
 import DefaultLayout from "@/layouts/default";
 import JobInput from "@/components/JobInput";
 import JobList from "@/components/JobList";
+import { addToast } from "@heroui/toast";
 
 interface Job {
   jobID: string;
@@ -59,9 +60,19 @@ const Jobs = () => {
   const handleCreate = async (data: JobFormData) => {
     try {
       await createNewJob(data);
-      alert("Job created successfully");
+      addToast({
+        title: "Success",
+        description: "Job created successfully",
+        color: "success",
+        size: "lg",
+      });
     } catch (err: any) {
-      alert(err.message || "Failed to create job");
+      addToast({
+        title: "Error",
+        description: err.message || "Failed to create job",
+        color: "danger",
+        size: "lg",
+      });
     }
   };
 
@@ -70,19 +81,39 @@ const Jobs = () => {
       if (selectedJob) {
         await updateExistingJob(selectedJob.jobID, data);
         setSelectedJob(null);
-        alert("Job updated successfully");
+        addToast({
+          title: "Success",
+          description: "Job updated successfully",
+          color: "success",
+          size: "lg",
+        });
       }
     } catch (err: any) {
-      alert(err.message || "Failed to update job");
+      addToast({
+        title: "Error",
+        description: err.message || "Failed to update job",
+        color: "danger",
+        size: "lg",
+      });
     }
   };
 
   const handleDelete = async (jobID: string) => {
     try {
       await deleteExistingJob(jobID);
-      alert("Job deleted successfully");
+      addToast({
+        title: "Success",
+        description: "Job deleted successfully",
+        color: "success",
+        size: "lg",
+      });
     } catch (err: any) {
-      alert(err.message || "Failed to delete job");
+      addToast({
+        title: "Error",
+        description: err.message || "Failed to delete job",
+        color: "danger",
+        size: "lg",
+      });
     }
   };
 
@@ -90,9 +121,19 @@ const Jobs = () => {
     try {
       // Need to implement this in services and API
       // await applyToJob(jobID);
-      alert("Application submitted successfully");
+      addToast({
+        title: "Success",
+        description: "Application submitted successfully",
+        color: "success",
+        size: "lg",
+      });
     } catch (err: any) {
-      alert(err.message || "Failed to apply for job");
+      addToast({
+        title: "Error",
+        description: err.message || "Failed to apply for job",
+        color: "danger",
+        size: "lg",
+      });
     }
   };
 
