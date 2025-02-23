@@ -7,6 +7,7 @@ import {
   deleteJob,
 } from "@/services/services";
 
+// What a job looks like in our system
 interface Job {
   jobID: string;
   title: string;
@@ -14,6 +15,8 @@ interface Job {
   price: number;
   contractPeriod: string;
   isComplete: boolean;
+  createdAt: string;
+  updatedAt: string;
   user: {
     userID: string;
     username: string;
@@ -23,6 +26,7 @@ interface Job {
   };
 }
 
+// Data needed to create or edit a job
 interface JobFormData {
   title: string;
   description: string;
@@ -31,16 +35,22 @@ interface JobFormData {
 }
 
 const useJobs = () => {
+  // Keep track of our jobs, loading state, and any errors
   const [jobs, setJobs] = useState<Job[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // Get all jobs from the server
   const fetchJobs = async () => {
     setLoading(true);
     setError(null);
     try {
       const res = await getJobs();
-      setJobs(res.data.jobs || res.data);
+      // Show newest jobs first
+      const sortedJobs = res.data.jobs.sort((a: Job, b: Job) => {
+        return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+      });
+      setJobs(sortedJobs);
       return res.data;
     } catch (err: any) {
       setError(err.response?.data?.error || err.message || "Error fetching jobs");
@@ -50,12 +60,14 @@ const useJobs = () => {
     }
   };
 
+  // Create a new job
   const createNewJob = async (data: JobFormData) => {
     setLoading(true);
     setError(null);
     try {
       const res = await createJob(data);
-      const newJob = res.data.job || res.data;
+      const newJob = res.data.job;
+      // Put the new job at the top of the list
       setJobs(prev => [newJob, ...prev]);
       return res.data;
     } catch (err: any) {
@@ -66,12 +78,14 @@ const useJobs = () => {
     }
   };
 
+  // Update an existing job
   const updateExistingJob = async (jobID: string, data: Partial<JobFormData>) => {
     setLoading(true);
     setError(null);
     try {
       const res = await updateJob(jobID, data);
       const updatedJob = res.data.job || res.data;
+      // Replace the old job with the updated one
       setJobs(prev => prev.map(job => (job.jobID === jobID ? updatedJob : job)));
       return res.data;
     } catch (err: any) {
@@ -82,11 +96,13 @@ const useJobs = () => {
     }
   };
 
+  // Delete a job
   const deleteExistingJob = async (jobID: string) => {
     setLoading(true);
     setError(null);
     try {
       const res = await deleteJob(jobID);
+      // Remove the deleted job from our list
       setJobs(prev => prev.filter(job => job.jobID !== jobID));
       return res.data;
     } catch (err: any) {
@@ -97,6 +113,7 @@ const useJobs = () => {
     }
   };
 
+  // Everything the rest of the app needs to work with jobs
   return {
     jobs,
     loading,

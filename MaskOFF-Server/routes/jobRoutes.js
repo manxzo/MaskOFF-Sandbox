@@ -24,9 +24,16 @@ router.post("/jobs", verifyToken, async (req, res) => {
     });
 
     await newJob.save();
+
+    // Populate user data before sending response
+    const populatedJob = await Job.findById(newJob._id).populate(
+      "user",
+      "username"
+    );
+
     res.status(201).json({
       message: "Job created successfully.",
-      job: newJob.toJSON(),
+      job: populatedJob.toJSON(),
     });
   } catch (err) {
     res.status(500).json({ error: err.message });

@@ -1,9 +1,9 @@
 import { useState, useEffect } from "react";
 import { Button } from "@heroui/react";
-import { Card } from "@heroui/react";
 import useJobs from "@/hooks/useJobs";
 import DefaultLayout from "@/layouts/default";
 import JobInput from "@/components/JobInput";
+import JobList from "@/components/JobList";
 
 interface Job {
   jobID: string;
@@ -40,9 +40,20 @@ const Jobs = () => {
   } = useJobs();
 
   const [selectedJob, setSelectedJob] = useState<Job | null>(null);
+  const [currentUserID, setCurrentUserID] = useState<string>("");
 
   useEffect(() => {
     fetchJobs();
+    // Get user ID from localStorage
+    const token = localStorage.getItem("token");
+    if (token) {
+      try {
+        const payload = JSON.parse(atob(token.split(".")[1]));
+        setCurrentUserID(payload.id);
+      } catch (err) {
+        console.error("Error parsing token:", err);
+      }
+    }
   }, []);
 
   const handleCreate = async (data: JobFormData) => {
@@ -75,6 +86,16 @@ const Jobs = () => {
     }
   };
 
+  const handleApply = async (jobID: string) => {
+    try {
+      // Need to implement this in services and API
+      // await applyToJob(jobID);
+      alert("Application submitted successfully");
+    } catch (err: any) {
+      alert(err.message || "Failed to apply for job");
+    }
+  };
+
   if (loading) {
     return <div>Loading...</div>;
   }
@@ -103,7 +124,7 @@ const Jobs = () => {
               }}
               submitLabel="Update Job"
             />
-            <Button variant="flat" onClick={() => setSelectedJob(null)}>
+            <Button variant="flat" onPress={() => setSelectedJob(null)}>
               Cancel Edit
             </Button>
           </>
@@ -114,32 +135,13 @@ const Jobs = () => {
           </>
         )}
 
-        <div>
-          {jobs?.map((job) => (
-            <Card key={job.jobID}>
-              <div>
-                <h2>Job Title: {job.title}</h2>
-                <div>
-                  Posted by: {job.user.username}
-                  <br />
-                  Contract Period: {job.contractPeriod}
-                </div>
-              </div>
-              <div>
-                <p>Job Description: {job.description}</p>
-                <p>Job Price: ${job.price}</p>
-              </div>
-              <div>
-                <Button variant="flat" onClick={() => setSelectedJob(job)}>
-                  Edit
-                </Button>
-                <Button variant="destructive" onClick={() => handleDelete(job.jobID)}>
-                  Delete
-                </Button>
-              </div>
-            </Card>
-          ))}
-        </div>
+        <JobList
+          jobs={jobs || []}
+          currentUserID={currentUserID}
+          onEdit={setSelectedJob}
+          onDelete={handleDelete}
+          onApply={handleApply}
+        />
       </div>
     </DefaultLayout>
   );
