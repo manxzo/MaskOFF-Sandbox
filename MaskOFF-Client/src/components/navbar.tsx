@@ -73,7 +73,7 @@ export const Navbar = () => {
                           name:user?.name.charAt(0),
                           showFallback:true,
                         }}
-                        description={<Link href={`/profile`} size="sm">
+                        description={<Link href={`/settings`} size="sm">
                         @{user?.username}
                       </Link>}
                         name={user?.name}
