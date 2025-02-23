@@ -411,6 +411,102 @@
           "path": ["chat", "{{chatID}}"]
         }
       }
+    },
+    {
+      "name": "Create Job",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n    \"title\": \"Sample Job\",\n    \"description\": \"This is a sample job description\",\n    \"price\": 100,\n    \"contractPeriod\": \"30\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{baseUrl}}/jobs",
+          "host": ["{{baseUrl}}"],
+          "path": ["jobs"]
+        }
+      }
+    },
+    {
+      "name": "Get All Jobs",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/jobs",
+          "host": ["{{baseUrl}}"],
+          "path": ["jobs"]
+        }
+      }
+    },
+    {
+      "name": "Update Job",
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n    \"title\": \"Updated Job Title\",\n    \"description\": \"Updated job description\",\n    \"price\": 150,\n    \"contractPeriod\": \"45\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{baseUrl}}/jobs/:jobID",
+          "host": ["{{baseUrl}}"],
+          "path": ["jobs", ":jobID"],
+          "variable": [
+            {
+              "key": "jobID",
+              "value": ""
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "Delete Job",
+      "request": {
+        "method": "DELETE",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}",
+            "type": "text"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/jobs/:jobID",
+          "host": ["{{baseUrl}}"],
+          "path": ["jobs", ":jobID"],
+          "variable": [
+            {
+              "key": "jobID",
+              "value": ""
+            }
+          ]
+        }
+      }
     }
   ],
   "variable": [
@@ -423,6 +519,7 @@
     { "key": "friendID", "value": "" },
     { "key": "recipientID", "value": "" },
     { "key": "chatID", "value": "" },
-    { "key": "messageID", "value": "" }
+    { "key": "messageID", "value": "" },
+    { "key": "baseUrl", "value": "http://localhost:3000/api" }
   ]
 }
