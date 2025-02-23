@@ -13,7 +13,7 @@ export const siteConfig = {
     { label: "Dashboard", href: "/:username/dashboard" },
     { label: "Posts", href: "/:username/posts" },
     { label: "Find Users", href: "/:username/find-users" },
-    { label: "Friend List", href: "/:username/friends" },
+    { label: "Friend List", href: "/friends" },
     { label: "Messages", href: "/:username/messages" },
     { label: "Profile", href: "/:username/profile" },
     { label: "Logout", href: "/logout" }

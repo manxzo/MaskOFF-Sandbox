@@ -1,9 +1,11 @@
-// routes/userRoutes.js
 const express = require("express");
 const router = express.Router();
 const UserAuth = require("../models/UserAuth");
 const UserProfile = require("../models/UserProfile");
 const { generateToken, verifyToken } = require("../components/jwtUtils");
+const fs = require("fs");
+const multer = require("multer");
+const upload = multer({ dest: "uploads/" });
 // Import MailerSend-based email utility functions
 const { sendVerificationEmail, sendForgotPasswordEmail } = require("../components/emailUtils");
 
@@ -31,7 +33,9 @@ router.post("/register", async (req, res) => {
     if (password !== confirmPassword) {
       return res.status(400).json({ error: "Passwords do not match." });
     }
-
+    if (password.length<8) {
+      return res.status(400).json({ error: "Password too short." });
+    }
     // 3. Check age >= 16
     const dateOfBirth = new Date(dob);
     if (isNaN(dateOfBirth.getTime())) {
@@ -90,7 +94,6 @@ router.post("/register", async (req, res) => {
       supportEmail: process.env.SUPPORT_EMAIL || "support@domain.com",
     });
 
-
     return res.status(201).json({
       message: "User registered successfully. Please verify your email.",
       user: {
@@ -104,28 +107,26 @@ router.post("/register", async (req, res) => {
   }
 });
 
-
 // Email Verification Route
 router.get("/verify-email", async (req, res) => {
-  const { userID, token } = req.query; 
+  const { userID, token } = req.query;
   if (!userID || !token) {
     return res.status(400).json({ error: "Missing parameters." });
   }
   try {
     const user = await UserAuth.findById(userID);
     if (!user) return res.status(404).json({ error: "User not found." });
-    
-  
+
     if (user.emailVerified) {
       return res.json({ message: "Email verified." });
     }
-    
+
     if (user.verificationToken !== token) {
       return res.status(400).json({ error: "Invalid verification token." });
     }
-    
+
     user.emailVerified = true;
-    user.verificationToken = undefined; 
+    user.verificationToken = undefined;
     await user.save();
     res.json({ message: "Email verified successfully." });
   } catch (err) {
@@ -134,34 +135,33 @@ router.get("/verify-email", async (req, res) => {
   }
 });
 
-
 // ================== Forgot Password & Reset Password ==================
 
 // Forgot Password: Request a password reset.
 router.post("/forgot-password", async (req, res) => {
   const { email } = req.body;
   if (!email) return res.status(400).json({ error: "Email is required." });
-  
+
   try {
     const user = await UserAuth.findOne({ email });
     if (!user) return res.status(404).json({ error: "User not found." });
-    
+
     // Generate a reset token.
     const resetToken = user.generateResetPasswordToken();
     await user.save();
-    
+
     // Construct the password reset URL.
     const resetUrl = `${process.env.CLIENT_URL}/reset-password?userID=${user._id}&token=${resetToken}&username=${user.username}`;
-    
-    // Send forgot-password email using MailerSend API via emailUtils.
+
+    // Updated: Use user.name (not user.firstName) since our schema has "name"
     await sendForgotPasswordEmail({
       to: user.email,
-      toName: user.firstName,
+      toName: user.name,
       username: user.username,
       resetUrl,
       supportEmail: process.env.SUPPORT_EMAIL || "support@domain.com",
     });
-    
+
     res.json({ message: "Password reset instructions have been sent to your email." });
   } catch (err) {
     console.error("Forgot password error:", err);
@@ -178,7 +178,7 @@ router.post("/reset-password", async (req, res) => {
   if (newPassword !== confirmNewPassword) {
     return res.status(400).json({ error: "Passwords do not match." });
   }
-  
+
   try {
     const user = await UserAuth.findById(userID);
     if (!user) return res.status(404).json({ error: "User not found." });
@@ -207,7 +207,7 @@ router.post("/users/login", async (req, res) => {
     const user = await UserAuth.findOne({ username });
     if (!user) return res.status(404).json({ error: "User not found." });
     if (!(await user.isCorrectPassword(password))) return res.status(401).json({ error: "Invalid credentials." });
-    
+
     const token = generateToken(user);
     // Fetch user profile.
     const profile = await UserProfile.findOne({ user: user._id });
@@ -223,7 +223,8 @@ router.get("/user/:userID", verifyToken, async (req, res) => {
     const user = await UserAuth.findById(req.params.userID);
     if (!user) return res.status(404).json({ error: "User not found." });
     const profile = await UserProfile.findOne({ user: user._id });
-    res.json({ ...user.toJSON(), profile: profile ? profile.toJSON() : {} });
+    // Updated: Using custom instance methods for public profile conversion.
+    res.json({ ...user.toPublicProfile(), profile: profile ? profile.toPublicProfile() : {} });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -245,28 +246,69 @@ router.put("/profile/:userID", verifyToken, async (req, res) => {
   }
 });
 
+// Update Avatar Route
+router.post("/upload-avatar", verifyToken, upload.single("avatar"), async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ error: "No file uploaded." });
+    }
+
+    // Read file data from the temporary storage
+    const imgData = fs.readFileSync(req.file.path);
+    const contentType = req.file.mimetype;
+
+    // Use the authenticated user's ID from req.user (set by verifyToken)
+    const user = await UserAuth.findById(req.user.id);
+    if (!user) return res.status(404).json({ error: "User not found." });
+
+    // Update the avatar field with the new image Buffer and content type
+    user.avatar = { data: imgData, contentType };
+    await user.save();
+
+    // Remove the temporary file
+    fs.unlinkSync(req.file.path);
+
+    res.json({ message: "Avatar uploaded successfully." });
+  } catch (err) {
+    console.error("Upload error:", err);
+    res.status(500).json({ error: err.message });
+  }
+});
+router.get("/avatar/:userID", async (req, res) => {
+  try {
+    const user = await UserAuth.findById(req.params.userID);
+    if (user && user.avatar && user.avatar.data) {
+      res.set("Content-Type", user.avatar.contentType);
+      return res.send(user.avatar.data);
+    } else {
+      return res.status(404).json({ error: "No avatar found." });
+    }
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
 // Get list of all users (basic public information)
 router.get("/users", async (req, res) => {
   try {
     // Retrieve all users from the authentication collection.
     const users = await UserAuth.find({});
-    // For each user, retrieve corresponding public profile data.
-    const userList = await Promise.all(
-      users.map(async (user) => {
-        const profile = await UserProfile.findOne({ user: user._id });
-        return {
-          userID: user.userID,
-          username: user.username,
-          firstName: user.firstName,
-          lastName: user.lastName,
-          publicInfo: profile ? profile.publicInfo : {},
-        };
-      })
-    );
+    // For each user, build a public object with an avatar URL if available.
+    const userList = users.map(user => {
+      const avatarUrl = (user.avatar && user.avatar.data)
+        ? `${process.env.APP_URL || "http://localhost:3000/api"}/avatar/${user._id}`
+        : null;
+      return {
+        userID: user._id,
+        username: user.username,
+        name: user.name,
+        avatar: avatarUrl,
+      };
+    });
     res.json({ users: userList });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 });
+
 
 module.exports = router;

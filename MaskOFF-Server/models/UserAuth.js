@@ -45,6 +45,10 @@ const UserAuthSchema = new mongoose.Schema(
     friendRequestsSent: { type: [friendSubSchema], default: [] },
     friendRequestsReceived: { type: [friendSubSchema], default: [] },
     friends: { type: [friendSubSchema], default: [] },
+    avatar:{
+      data:Buffer,
+      contentType:String,
+    }
   },
   { timestamps: true }
 );
@@ -85,6 +89,26 @@ UserAuthSchema.set("toJSON", {
     delete ret._id;
     delete ret.__v;
     delete ret.password;
+    delete ret.resetPasswordExpires;
+    delete ret.resetPasswordToken;
+    delete ret.verificationToken;
+    return ret;
+  },
+});
+UserAuthSchema.set("toPublicProfile", {
+  virtuals: true,
+  transform: (doc, ret) => {
+    ret.userID = ret._id;
+    delete ret._id;
+    delete ret.__v;
+    delete ret.password;
+    delete ret.resetPasswordExpires;
+    delete ret.resetPasswordToken;
+    delete ret.verificationToken;
+    delete ret.email;
+    delete ret.dob
+    delete ret.friendRequestsReceived;
+    delete ret.friendRequestsSent;
     return ret;
   },
 });

@@ -44,7 +44,7 @@ router.post("/friends/request", verifyToken, async (req, res) => {
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
-});
+}); 
 
 /**
  * List friend requests received by the current user.
