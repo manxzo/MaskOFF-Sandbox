@@ -2,19 +2,19 @@ export const siteConfig = {
   name: "MASKoff",
   description: "A full-stack job platform with community engagement and direct messaging.",
   
-  // Navigation for unauthenticated users.
+  // nav for unauthenticated users.
   unauthenticatedNavItems: [
     { label: "Login/Register", link: "/#" },
   ],
 
-  // Navigation for authenticated users.
-  // The ':username' placeholder will be replaced with the actual username.
+  // nav for authenticated users.
   authenticatedNavItems: [
     { label: "Dashboard", link: "/dashboard" },
     { label: "Posts", link: "/posts" },
     { label: "Friends", link: "/friends" },
     { label: "Messages", link: "/messages" },
     { label: "Profile", link: "/profile" },
+    { label: "Settings", link: "/settings" },
     { label: "Logout", link: "/logout" }
   ]
 };
