@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { Button } from "@heroui/react";
+import { Spinner } from "@heroui/react";
 import useJobs from "@/hooks/useJobs";
 import DefaultLayout from "@/layouts/default";
 import JobInput from "@/components/JobInput";
@@ -44,15 +45,30 @@ const Jobs = () => {
   const [currentUserID, setCurrentUserID] = useState<string>("");
 
   useEffect(() => {
-    fetchJobs();
+    const loadJobs = async () => {
+      try {
+        await fetchJobs();
+      } catch (err) {
+        addToast({
+          title: "Error",
+          description: "Failed to load jobs. Please try again later.",
+          color: "danger",
+          size: "lg",
+        });
+      }
+    };
+
+    loadJobs();
+    
     // Get user ID from localStorage
     const token = localStorage.getItem("token");
     if (token) {
       try {
         const payload = JSON.parse(atob(token.split(".")[1]));
-        setCurrentUserID(payload.id);
+        setCurrentUserID(payload.id || "");
       } catch (err) {
         console.error("Error parsing token:", err);
+        setCurrentUserID("");
       }
     }
   }, []);
@@ -138,7 +154,13 @@ const Jobs = () => {
   };
 
   if (loading) {
-    return <div>Loading...</div>;
+    return (
+      <DefaultLayout>
+        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '50vh' }}>
+          <Spinner size="lg" />
+        </div>
+      </DefaultLayout>
+    );
   }
 
   if (error) {
