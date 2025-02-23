@@ -3,6 +3,24 @@ import React, { createContext, useState, useEffect, ReactNode } from "react";
 import { getUser } from "@/services/services";
 import {jwtDecode} from "jwt-decode";
 
+export interface PublicProfile {
+  userID: string;
+  username: string;
+  name: string;
+  profile: {
+    publicInfo?: {
+      bio: string;
+      skills: string[];
+      achievements: string[];
+      portfolio: string;
+    };
+    anonymousInfo?: {
+      anonymousIdentity: string;
+      details: string;
+    };
+  };
+}
+
 export interface Friend {
   userID: string;
   username: string;

@@ -5,6 +5,11 @@ import { ResetPasswordForm } from "./pages/PasswordReset";
 import FriendsPage from "./pages/Friends";
 import Posts from "./pages/Posts";
 import Dashboard from "./pages/Dashboard";
+import Posts from "./pages/Posts";  
+import Dashboard from "./pages/Dashboard";
+import Profile from "./pages/Profile";
+import Settings from "./pages/Settings";
+
 
 
 const App = () => {
@@ -18,6 +23,8 @@ const App = () => {
       <Route path="/reset-password" element={<ResetPasswordForm />} />
       <Route path="/friends" element={<FriendsPage />} />
       <Route path="/posts" element={<Posts />} />
+      <Route path="/profile/:username?" element={<Profile />} />
+      <Route path="/settings" element={<Settings />} />
     </Routes>
   );
 };

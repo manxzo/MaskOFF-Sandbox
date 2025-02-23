@@ -6,12 +6,12 @@ const { generateToken, verifyToken } = require("../components/jwtUtils");
 const fs = require("fs");
 const multer = require("multer");
 const upload = multer({ dest: "uploads/" });
-// Import MailerSend-based email utility functions
+// MailerSend-based email utility functions
 const { sendVerificationEmail, sendForgotPasswordEmail } = require("../components/emailUtils");
 
 // ================== Registration & Verification ==================
 
-// Registration: Create UserAuth and corresponding UserProfile, then send verification email.
+// registration: Create UserAuth and corresponding UserProfile, then send verification email.
 router.post("/register", async (req, res) => {
   try {
     const {
@@ -21,22 +21,22 @@ router.post("/register", async (req, res) => {
       username,
       password,
       confirmPassword,
-      anonymousIdentity // Required for the maskOFF identity
+      anonymousIdentity // required for maskOFF identity
     } = req.body;
 
-    // 1. Validate all required fields
+    // validate all required fields
     if (!name || !dob || !email || !username || !password || !confirmPassword || !anonymousIdentity) {
       return res.status(400).json({ error: "All required fields must be provided." });
     }
 
-    // 2. Check password match
+    // check password match
     if (password !== confirmPassword) {
       return res.status(400).json({ error: "Passwords do not match." });
     }
     if (password.length<8) {
       return res.status(400).json({ error: "Password too short." });
     }
-    // 3. Check age >= 16
+    // check age >= 16
     const dateOfBirth = new Date(dob);
     if (isNaN(dateOfBirth.getTime())) {
       return res.status(400).json({ error: "Invalid date of birth format." });
@@ -48,7 +48,7 @@ router.post("/register", async (req, res) => {
       return res.status(400).json({ error: "You must be at least 16 years old to register." });
     }
 
-    // 4. Check for duplicates
+    // check for duplicates
     const emailExists = await UserAuth.findOne({ email });
     if (emailExists) {
       return res.status(409).json({ error: "Email already in use." });
@@ -62,7 +62,7 @@ router.post("/register", async (req, res) => {
       return res.status(409).json({ error: "This MaskOFF ID is already taken." });
     }
 
-    // 5. Create the user
+    // create the user
     const newUserAuth = new UserAuth({
       name,
       dob: dateOfBirth,
@@ -73,8 +73,8 @@ router.post("/register", async (req, res) => {
     newUserAuth.generateVerificationToken(); // generate a verification token
     await newUserAuth.save();
 
-    // 6. Create the profile
-    // Only anonymousIdentity is mandatory for the "anonymousInfo"
+    // create the profile
+    // only anonymousIdentity is mandatory for "anonymousInfo"
     const newUserProfile = new UserProfile({
       user: newUserAuth._id,
       anonymousInfo: {
@@ -84,7 +84,7 @@ router.post("/register", async (req, res) => {
     });
     await newUserProfile.save();
 
-    // 7. Send verification email
+    // send verification email
     const verificationUrl = `${process.env.CLIENT_URL}/verify-email?userID=${newUserAuth._id}&verifytoken=${newUserAuth.verificationToken}`;
     await sendVerificationEmail({
       to: newUserAuth.email,
@@ -107,7 +107,7 @@ router.post("/register", async (req, res) => {
   }
 });
 
-// Email Verification Route
+// email verification route
 router.get("/verify-email", async (req, res) => {
   const { userID, token } = req.query;
   if (!userID || !token) {
@@ -137,7 +137,7 @@ router.get("/verify-email", async (req, res) => {
 
 // ================== Forgot Password & Reset Password ==================
 
-// Forgot Password: Request a password reset.
+// request password reset
 router.post("/forgot-password", async (req, res) => {
   const { email } = req.body;
   if (!email) return res.status(400).json({ error: "Email is required." });
@@ -153,7 +153,7 @@ router.post("/forgot-password", async (req, res) => {
     // Construct the password reset URL.
     const resetUrl = `${process.env.CLIENT_URL}/reset-password?userID=${user._id}&token=${resetToken}&username=${user.username}`;
 
-    // Updated: Use user.name (not user.firstName) since our schema has "name"
+    // updated: Use user.name (not user.firstName) since our schema has "name"
     await sendForgotPasswordEmail({
       to: user.email,
       toName: user.name,
@@ -169,7 +169,7 @@ router.post("/forgot-password", async (req, res) => {
   }
 });
 
-// Reset Password: Set a new password using the token.
+// reset password: set a new password using the token.
 router.post("/reset-password", async (req, res) => {
   const { userID, token, newPassword, confirmNewPassword } = req.body;
   if (!userID || !token || !newPassword || !confirmNewPassword) {
@@ -182,11 +182,11 @@ router.post("/reset-password", async (req, res) => {
   try {
     const user = await UserAuth.findById(userID);
     if (!user) return res.status(404).json({ error: "User not found." });
-    // Check if token is valid and not expired.
+    // check if token is valid and not expired.
     if (user.resetPasswordToken !== token || Date.now() > user.resetPasswordExpires) {
       return res.status(400).json({ error: "Invalid or expired reset token." });
     }
-    // Update password (it will be hashed in the pre-save hook).
+    // update password (it will be hashed in the pre-save hook).
     user.password = newPassword;
     user.resetPasswordToken = undefined;
     user.resetPasswordExpires = undefined;
@@ -200,7 +200,7 @@ router.post("/reset-password", async (req, res) => {
 
 // ================== Login, Get User, Update Profile, List Users ==================
 
-// Login Route
+// login route
 router.post("/users/login", async (req, res) => {
   try {
     const { username, password } = req.body;
@@ -209,7 +209,7 @@ router.post("/users/login", async (req, res) => {
     if (!(await user.isCorrectPassword(password))) return res.status(401).json({ error: "Invalid credentials." });
 
     const token = generateToken(user);
-    // Fetch user profile.
+    // fetch user profile
     const profile = await UserProfile.findOne({ user: user._id });
     res.json({ token, user: { ...user.toJSON(), profile: profile ? profile.toJSON() : {} } });
   } catch (err) {
@@ -217,20 +217,20 @@ router.post("/users/login", async (req, res) => {
   }
 });
 
-// Get user details (combined auth & profile)
+// get user details (combined auth & profile)
 router.get("/user/:userID", verifyToken, async (req, res) => {
   try {
     const user = await UserAuth.findById(req.params.userID);
     if (!user) return res.status(404).json({ error: "User not found." });
     const profile = await UserProfile.findOne({ user: user._id });
-    // Updated: Using custom instance methods for public profile conversion.
+    // updated: using custom instance methods for public profile conversion.
     res.json({ ...user.toPublicProfile(), profile: profile ? profile.toPublicProfile() : {} });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 });
 
-// Update profile (optional update of public/anonymous info)
+// update profile (optional update of public/anonymous info)
 router.put("/profile/:userID", verifyToken, async (req, res) => {
   try {
     const { publicInfo, anonymousInfo } = req.body;
@@ -246,26 +246,26 @@ router.put("/profile/:userID", verifyToken, async (req, res) => {
   }
 });
 
-// Update Avatar Route
+// update avatar route
 router.post("/upload-avatar", verifyToken, upload.single("avatar"), async (req, res) => {
   try {
     if (!req.file) {
       return res.status(400).json({ error: "No file uploaded." });
     }
 
-    // Read file data from the temporary storage
+    // read file data from temp storage
     const imgData = fs.readFileSync(req.file.path);
     const contentType = req.file.mimetype;
 
-    // Use the authenticated user's ID from req.user (set by verifyToken)
+    // use the authenticated user's ID from req.user (set by verifyToken)
     const user = await UserAuth.findById(req.user.id);
     if (!user) return res.status(404).json({ error: "User not found." });
 
-    // Update the avatar field with the new image Buffer and content type
+    // update the avatar field with the new image Buffer and content type
     user.avatar = { data: imgData, contentType };
     await user.save();
 
-    // Remove the temporary file
+    // remove the temporary file
     fs.unlinkSync(req.file.path);
 
     res.json({ message: "Avatar uploaded successfully." });
@@ -287,12 +287,12 @@ router.get("/avatar/:userID", async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 });
-// Get list of all users (basic public information)
+// get list of all users (basic public information)
 router.get("/users", async (req, res) => {
   try {
-    // Retrieve all users from the authentication collection.
+    // retrieve all users from the authentication collection.
     const users = await UserAuth.find({});
-    // For each user, build a public object with an avatar URL if available.
+    // for each user, build a public object with an avatar URL if available.
     const userList = users.map(user => {
       const avatarUrl = (user.avatar && user.avatar.data)
         ? `${process.env.APP_URL || "http://localhost:3000/api"}/avatar/${user._id}`
@@ -305,6 +305,23 @@ router.get("/users", async (req, res) => {
       };
     });
     res.json({ users: userList });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// get user by username (public profile)
+router.get("/user/by-username/:username", async (req, res) => {
+  try {
+    const user = await UserAuth.findOne({ username: req.params.username });
+    if (!user) return res.status(404).json({ error: "user not found" });
+    const profile = await UserProfile.findOne({ user: user._id });
+    res.json({
+      userID: user._id,
+      username: user.username,
+      name: user.name,
+      profile: profile ? profile.toPublicProfile() : {}
+    });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
