@@ -8,6 +8,11 @@ import { ResetPasswordForm } from "./pages/PasswordReset";
 import useWebSocketUpdates from "./hooks/useWebSocket";
 import FriendsPage from "./pages/Friends";
 import {GlobalConfigContext} from "./config/GlobalConfig"
+import Posts from "./pages/Posts";  
+
+
+
+
 // Import your pages (ensure you create/update these pages using @heroui/react components)
 
 const App = () => {
@@ -17,9 +22,11 @@ const App = () => {
     <Routes>
       <Route path="/" element={<Navigate to="/home" />} />
       <Route path="/home" element={<Home />} />
+
       <Route path="/verify-email" element={<EmailVerification />} />
       <Route path="/reset-password" element={<ResetPasswordForm/>}/>
       <Route path={`/friends`} element={<FriendsPage/>}/>
+      <Route path="/:username/posts" element={<Posts />} />
     </Routes>
   );
 };
