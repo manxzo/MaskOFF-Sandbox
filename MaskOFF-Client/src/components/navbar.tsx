@@ -65,7 +65,7 @@ export const Navbar = () => {
 
                 ) : (
                   // For Login and Register in unauthenticated state, open modal.
-                  (item.label === "Profile") ? (
+                  (item.label === "Settings") ? (
                     <>
                       <User
                         avatarProps={{
@@ -73,7 +73,7 @@ export const Navbar = () => {
                           name:user?.name.charAt(0),
                           showFallback:true,
                         }}
-                        description={<Link href={`/profile`} size="sm">
+                        description={<Link href={`/settings`} size="sm">
                         @{user?.username}
                       </Link>}
                         name={user?.name}

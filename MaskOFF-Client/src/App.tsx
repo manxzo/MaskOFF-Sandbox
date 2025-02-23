@@ -5,8 +5,6 @@ import { ResetPasswordForm } from "./pages/PasswordReset";
 import FriendsPage from "./pages/Friends";
 import Posts from "./pages/Posts";
 import Dashboard from "./pages/Dashboard";
-import Posts from "./pages/Posts";  
-import Dashboard from "./pages/Dashboard";
 import Profile from "./pages/Profile";
 import Settings from "./pages/Settings";
 
