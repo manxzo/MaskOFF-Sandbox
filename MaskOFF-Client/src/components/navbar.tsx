@@ -47,9 +47,9 @@ export const Navbar = () => {
 
         <NavbarContent justify="center">
           {navItems.map((item) => (
-            <NavbarItem key={item.href}>
+            <NavbarItem key={item.link}>
               {item.label === "Logout" ? (
-                <Button variant="flat" onPress={handleLogout}>
+                <Button variant="flat" onPress={()=>handleLogout}>
                   {item.label}
                 </Button>
               ) : (
@@ -66,7 +66,7 @@ export const Navbar = () => {
                   <Link
                     className={clsx("px-3 py-2", "hover:text-primary")}
                     color="foreground"
-                    href={item.href}
+                    href={item.link}
                   >
                     {item.label}
                   </Link>

@@ -4,17 +4,17 @@ export const siteConfig = {
   
   // Navigation for unauthenticated users.
   unauthenticatedNavItems: [
-    { label: "Login/Register", href: "/#" },
+    { label: "Login/Register", link: "/#" },
   ],
 
   // Navigation for authenticated users.
   // The ':username' placeholder will be replaced with the actual username.
   authenticatedNavItems: [
-    { label: "Dashboard", href: "/dashboard" },
-    { label: "Posts", href: "/posts" },
-    { label: "Friends", href: "/friends" },
-    { label: "Messages", href: "/messages" },
-    { label: "Profile", href: "/profile" },
-    { label: "Logout", href: "/logout" }
+    { label: "Dashboard", link: "/dashboard" },
+    { label: "Posts", link: "/posts" },
+    { label: "Friends", link: "/friends" },
+    { label: "Messages", link: "/messages" },
+    { label: "Profile", link: "/profile" },
+    { label: "Logout", link: "/logout" }
   ]
 };
