@@ -3,90 +3,90 @@ const router = express.Router();
 const Post = require("../models/Post");
 const UserProfile = require("../models/UserProfile");
 const { verifyToken } = require("../components/jwtUtils");
+const UserAuth = require("../models/UserAuth");
 
 // Create a new post
 router.post("/posts", verifyToken, async (req, res) => {
   try {
     const { content, tags, isAnonymous } = req.body;
-    if (!content)
+    if (!content) {
       return res.status(400).json({ error: "Content is required." });
+    }
+
+    // Fetch both the user's auth info and profile concurrently.
+    const [user, profile] = await Promise.all([
+      UserAuth.findById(req.user.id),
+      UserProfile.findOne({ user: req.user.id }),
+    ]);
+
+    if (!user || !profile) {
+      return res.status(404).json({ error: "User not found." });
+    }
+
+    let author;
+    let anonymousInfo = null;
+    if (isAnonymous) {
+      // Use the anonymous identity and details from the profile.
+      author = profile.anonymousInfo.anonymousIdentity;
+      anonymousInfo = {
+        anonymousIdentity: profile.anonymousInfo.anonymousIdentity,
+        details: profile.anonymousInfo.details,
+      };
+    } else {
+      // Use the user's actual username.
+      author = user.username;
+    }
 
     const newPost = new Post({
       user: req.user.id,
+      author,
       content,
       tags,
       isAnonymous: isAnonymous || false,
+      anonymousInfo,
     });
+
     await newPost.save();
     res
       .status(201)
-      .json({ message: "Post created successfully.", post: newPost.toJSON() });
+      .json({ message: "Post created successfully.", post: newPost.toPublic() });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 });
 
-// Retrieve all posts with proper profile info based on MaskON (anonymous) vs. MaskOFF (public)
+// Retrieve all posts with proper profile info based on anonymity
 router.get("/posts", async (req, res) => {
   try {
-    // Get all posts and populate the "user" field (but note that we don't want to reveal public info for anonymous posts)
+    // Retrieve all posts and populate the "user" field with username.
     const posts = await Post.find().populate("user", "username");
 
-    // For each post, fetch the associated UserProfile and decide which info to include
-    const postsWithProfile = await Promise.all(
-      posts.map(async (post) => {
-        const profile = await UserProfile.findOne({ user: post.user._id });
-        let displayProfile = {};
-        if (post.isAnonymous) {
-          // If anonymous, return only the anonymousInfo
-          displayProfile = {
-            anonymousInfo: profile ? profile.anonymousInfo : {},
-          };
-        } else {
-          // Otherwise, return the publicInfo
-          displayProfile = { publicInfo: profile ? profile.publicInfo : {} };
-        }
-        return {
-          ...post.toJSON(),
-          user: {
-            userID: post.user._id, // or post.user.userID if virtuals are available
-            username: post.user.username,
-            ...displayProfile,
-          },
-        };
-      })
-    );
-    res.json({ posts: postsWithProfile });
+    // Convert each post (and its comments) using the custom toPublic method.
+    const publicPosts = posts.map((post) => {
+      // Map each comment using its toPublic method (or fallback to toJSON).
+      const publicComments = post.comments.map((comment) =>
+        typeof comment.toPublic === "function" ? comment.toPublic() : comment.toObject()
+      );
+      // Convert the post to its public version.
+      const publicPost =
+        typeof post.toPublic === "function" ? post.toPublic() : post.toObject();
+      return {
+        ...publicPost,
+        comments: publicComments,
+      };
+    });
+    res.json({ posts: publicPosts });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 });
 
-// Get a single post by postID, with proper profile info
+// Get a single post by postID with proper profile info
 router.get("/posts/:postID", async (req, res) => {
   try {
-    const post = await Post.findById(req.params.postID).populate(
-      "user",
-      "username"
-    );
+    const post = await Post.findById(req.params.postID).populate("user", "username");
     if (!post) return res.status(404).json({ error: "Post not found." });
-    const profile = await UserProfile.findOne({ user: post.user._id });
-    let displayProfile = {};
-    if (post.isAnonymous) {
-      displayProfile = { anonymousInfo: profile ? profile.anonymousInfo : {} };
-    } else {
-      displayProfile = { publicInfo: profile ? profile.publicInfo : {} };
-    }
-    res.json({
-      post: {
-        ...post.toJSON(),
-        user: {
-          userID: post.user._id,
-          username: post.user.username,
-          ...displayProfile,
-        },
-      },
-    });
+    res.json({ post: post.toPublic() });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -99,14 +99,31 @@ router.put("/posts/:postID", verifyToken, async (req, res) => {
     const { content, tags, isAnonymous } = req.body;
     const post = await Post.findById(postID);
     if (!post) return res.status(404).json({ error: "Post not found." });
-    // Optionally check if req.user.id matches post.user.
+    // Optionally: check if req.user.id matches post.user.
+
     post.content = content || post.content;
     post.tags = tags || post.tags;
     if (typeof isAnonymous !== "undefined") {
       post.isAnonymous = isAnonymous;
+      if (isAnonymous) {
+        const profile = await UserProfile.findOne({ user: req.user.id });
+        if (profile) {
+          post.author = profile.anonymousInfo.anonymousIdentity;
+          post.anonymousInfo = {
+            anonymousIdentity: profile.anonymousInfo.anonymousIdentity,
+            details: profile.anonymousInfo.details,
+          };
+        }
+      } else {
+        const user = await UserAuth.findById(req.user.id);
+        if (user) {
+          post.author = user.username;
+          post.anonymousInfo = null;
+        }
+      }
     }
     await post.save();
-    res.json({ message: "Post updated", post: post.toJSON() });
+    res.json({ message: "Post updated", post: post.toPublic() });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -124,22 +141,46 @@ router.delete("/posts/:postID", verifyToken, async (req, res) => {
   }
 });
 
-// ==================== Additional Routes ====================
-
-// Add a comment to a post
+// Add a comment to a post (with optional anonymous info)
 router.post("/posts/:postID/comments", verifyToken, async (req, res) => {
   try {
     const { postID } = req.params;
-    const { content } = req.body;
+    const { content, isAnonymous } = req.body;
     if (!content)
       return res.status(400).json({ error: "Comment content is required." });
     const post = await Post.findById(postID);
     if (!post) return res.status(404).json({ error: "Post not found." });
 
-    // Add the comment with the user's ID and content.
-    post.comments.push({ user: req.user.id, content });
+    let commentData = { user: req.user.id, content };
+
+    if (isAnonymous) {
+      const profile = await UserProfile.findOne({ user: req.user.id });
+      const user = await UserAuth.findById(req.user.id);
+      if (profile && user) {
+        commentData = {
+          ...commentData,
+          author:profile.anonymousInfo.anonymousIdentity,
+          anonymousInfo: {
+            anonymousIdentity: profile.anonymousInfo.anonymousIdentity,
+            details: profile.anonymousInfo.details,
+          },
+        };
+      }
+    }
+    else{
+     
+      const user = await UserAuth.findById(req.user.id);
+      if (user) {
+        commentData = {
+          ...commentData,
+          author:user.username, 
+        };
+      }
+    }
+
+    post.comments.push(commentData);
     await post.save();
-    res.status(201).json({ message: "Comment added", post: post.toJSON() });
+    res.status(201).json({ message: "Comment added", post: post.toPublic() });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -151,28 +192,24 @@ router.post("/posts/:postID/upvote", verifyToken, async (req, res) => {
     const { postID } = req.params;
     const post = await Post.findById(postID);
     if (!post) return res.status(404).json({ error: "Post not found." });
-
     const userId = req.user.id;
 
-    // Remove from downvotedBy if exists.
+    // Remove user from downvotedBy if present.
     if (post.downvotedBy && post.downvotedBy.includes(userId)) {
       post.downvotedBy = post.downvotedBy.filter(
         (id) => id.toString() !== userId.toString()
       );
     }
-
     // Toggle upvote.
     if (post.upvotedBy && post.upvotedBy.includes(userId)) {
       post.upvotedBy = post.upvotedBy.filter(
         (id) => id.toString() !== userId.toString()
       );
     } else {
-      post.upvotedBy = post.upvotedBy || [];
       post.upvotedBy.push(userId);
     }
-
     await post.save();
-    res.json({ message: "Upvote processed", post: post.toJSON() });
+    res.json({ message: "Upvote processed", post: post.toPublic() });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -184,7 +221,6 @@ router.post("/posts/:postID/downvote", verifyToken, async (req, res) => {
     const { postID } = req.params;
     const post = await Post.findById(postID);
     if (!post) return res.status(404).json({ error: "Post not found." });
-
     const userId = req.user.id;
 
     // Remove from upvotedBy if exists.
@@ -193,19 +229,16 @@ router.post("/posts/:postID/downvote", verifyToken, async (req, res) => {
         (id) => id.toString() !== userId.toString()
       );
     }
-
     // Toggle downvote.
     if (post.downvotedBy && post.downvotedBy.includes(userId)) {
       post.downvotedBy = post.downvotedBy.filter(
         (id) => id.toString() !== userId.toString()
       );
     } else {
-      post.downvotedBy = post.downvotedBy || [];
       post.downvotedBy.push(userId);
     }
-
     await post.save();
-    res.json({ message: "Downvote processed", post: post.toJSON() });
+    res.json({ message: "Downvote processed", post: post.toPublic() });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }

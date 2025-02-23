@@ -12,7 +12,6 @@ import {
 } from "@/services/services";
 
 
-
 const usePosts = () => {
   const [posts, setPosts] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -23,10 +22,15 @@ const usePosts = () => {
     setError(null);
     try {
       const res = await getPosts();
-      setPosts(res.data.posts || res.data);
+      const sortedPosts = res.data.posts.sort(
+        (a: any, b: any) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+      );
+      setPosts(sortedPosts);
       return res.data;
     } catch (err: any) {
-      setError(err.response?.data?.error || err.message || "Error fetching posts");
+      setError(
+        err.response?.data?.error || err.message || "Error fetching posts"
+      );
       throw err;
     } finally {
       setLoading(false);
@@ -43,26 +47,35 @@ const usePosts = () => {
     try {
       const res = await createPost(data);
       const newPost = res.data.post || res.data;
-      setPosts(prev => [newPost, ...prev]);
+      setPosts((prev) => [newPost, ...prev]);
       return res.data;
     } catch (err: any) {
-      setError(err.response?.data?.error || err.message || "Error creating post");
+      setError(
+        err.response?.data?.error || err.message || "Error creating post"
+      );
       throw err;
     } finally {
       setLoading(false);
     }
   };
 
-  const updateExistingPost = async (postID: string, data: { content?: string; tags?: string[]; isAnonymous?: boolean }) => {
+  const updateExistingPost = async (
+    postID: string,
+    data: { content?: string; tags?: string[]; isAnonymous?: boolean }
+  ) => {
     setLoading(true);
     setError(null);
     try {
       const res = await updatePost(postID, data);
       const updatedPost = res.data.post || res.data;
-      setPosts(prev => prev.map(post => (post.postID === postID ? updatedPost : post)));
+      setPosts((prev) =>
+        prev.map((post) => (post.postID === postID ? updatedPost : post))
+      );
       return res.data;
     } catch (err: any) {
-      setError(err.response?.data?.error || err.message || "Error updating post");
+      setError(
+        err.response?.data?.error || err.message || "Error updating post"
+      );
       throw err;
     } finally {
       setLoading(false);
@@ -74,24 +87,34 @@ const usePosts = () => {
     setError(null);
     try {
       const res = await deletePost(postID);
-      setPosts(prev => prev.filter(post => post.postID !== postID));
+      setPosts((prev) => prev.filter((post) => post.postID !== postID));
       return res.data;
     } catch (err: any) {
-      setError(err.response?.data?.error || err.message || "Error deleting post");
+      setError(
+        err.response?.data?.error || err.message || "Error deleting post"
+      );
       throw err;
     } finally {
       setLoading(false);
     }
   };
 
-  const addPostComment = async (postID: string, content: string) => {
+  // Updated addPostComment: Accepts an object with content and an optional isAnonymous flag.
+  const addPostComment = async (
+    postID: string,
+    data: { content: string; isAnonymous?: boolean }
+  ) => {
     setLoading(true);
     setError(null);
     try {
-      const res = await addComment(postID, content);
+      const res = await addComment(postID, data);
       return res.data;
     } catch (err: any) {
-      setError(err.response?.data?.error || err.message || "Error adding comment");
+      setError(
+        err.response?.data?.error ||
+          err.message ||
+          "Error adding comment"
+      );
       throw err;
     } finally {
       setLoading(false);
@@ -103,10 +126,12 @@ const usePosts = () => {
     setError(null);
     try {
       const res = await upvotePost(postID);
-      // Optionally update the post's votes.
+      // Optionally, update local state if needed.
       return res.data;
     } catch (err: any) {
-      setError(err.response?.data?.error || err.message || "Error upvoting post");
+      setError(
+        err.response?.data?.error || err.message || "Error upvoting post"
+      );
       throw err;
     } finally {
       setLoading(false);
@@ -118,10 +143,12 @@ const usePosts = () => {
     setError(null);
     try {
       const res = await downvotePost(postID);
-      // Optionally update the post's votes.
+      // Optionally, update local state if needed.
       return res.data;
     } catch (err: any) {
-      setError(err.response?.data?.error || err.message || "Error downvoting post");
+      setError(
+        err.response?.data?.error || err.message || "Error downvoting post"
+      );
       throw err;
     } finally {
       setLoading(false);

@@ -13,7 +13,7 @@ export const siteConfig = {
     { label: "Posts", link: "/posts" },
     { label: "Jobs", link: "/jobs" },
     { label: "Friends", link: "/friends" },
-    { label: "Messages", link: "/messages" },
+    { label: "Chats", link: "/chats" },
     { label: "Profile", link: "/profile" },
     { label: "Settings", link: "/settings" },
     { label: "Logout", link: "/logout" }

@@ -92,41 +92,30 @@ export const uploadAvatar = (avatar: File) => {
 export const listUsers = () => apiClient.get("/users");
 
 // ===== Post Endpoints =====
-
-// Create a new post
 export const createPost = (data: {
   content: string;
   tags?: string[];
   isAnonymous?: boolean;
 }) => apiClient.post("/posts", data);
 
-// Get all posts
 export const getPosts = () => apiClient.get("/posts");
 
-// Get a single post by postID
 export const getPost = (postID: string) => apiClient.get(`/posts/${postID}`);
 
-// Update a post
 export const updatePost = (
   postID: string,
   data: { content?: string; tags?: string[]; isAnonymous?: boolean }
 ) => apiClient.put(`/posts/${postID}`, data);
 
-// Delete a post
-export const deletePost = (postID: string) =>
-  apiClient.delete(`/posts/${postID}`);
+export const deletePost = (postID: string) => apiClient.delete(`/posts/${postID}`);
 
-// Add a comment to a post
-export const addComment = (postID: string, content: string) =>
-  apiClient.post(`/posts/${postID}/comments`, { content });
 
-// Upvote a post
-export const upvotePost = (postID: string) =>
-  apiClient.post(`/posts/${postID}/upvote`);
+export const addComment = (postID: string, data: { content: string; isAnonymous?: boolean }) =>
+  apiClient.post(`/posts/${postID}/comments`, data);
 
-// Downvote a post
-export const downvotePost = (postID: string) =>
-  apiClient.post(`/posts/${postID}/downvote`);
+export const upvotePost = (postID: string) => apiClient.post(`/posts/${postID}/upvote`);
+
+export const downvotePost = (postID: string) => apiClient.post(`/posts/${postID}/downvote`);
 
 // ===== Friend Endpoints =====
 

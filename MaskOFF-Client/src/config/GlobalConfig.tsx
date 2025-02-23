@@ -68,7 +68,7 @@ export interface Message {
 
 export interface Chat {
   chatID: string;
-  participants: string[];
+  participants: [];
   messages: Message[];
 }
 
