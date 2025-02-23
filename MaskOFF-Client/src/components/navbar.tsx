@@ -1,4 +1,4 @@
-import { useContext, useEffect } from "react";
+import { useContext } from "react";
 import { Button } from "@heroui/button";
 import { Link } from "@heroui/link";
 import {
@@ -73,7 +73,9 @@ export const Navbar = () => {
                           name:user?.name.charAt(0),
                           showFallback:true,
                         }}
-                        description={user?.username}
+                        description={<Link href={`/profile`} size="sm">
+                        @{user?.username}
+                      </Link>}
                         name={user?.name}
                       />
                     </>
