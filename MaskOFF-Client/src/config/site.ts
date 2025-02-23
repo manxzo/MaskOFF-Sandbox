@@ -10,12 +10,11 @@ export const siteConfig = {
   // Navigation for authenticated users.
   // The ':username' placeholder will be replaced with the actual username.
   authenticatedNavItems: [
-    { label: "Dashboard", href: "/:username/dashboard" },
-    { label: "Posts", href: "/:username/posts" },
-    { label: "Find Users", href: "/:username/find-users" },
-    { label: "Friend List", href: "/friends" },
-    { label: "Messages", href: "/:username/messages" },
-    { label: "Profile", href: "/:username/profile" },
+    { label: "Dashboard", href: "/dashboard" },
+    { label: "Posts", href: "/posts" },
+    { label: "Friends", href: "/friends" },
+    { label: "Messages", href: "/messages" },
+    { label: "Profile", href: "/profile" },
     { label: "Logout", href: "/logout" }
   ]
 };

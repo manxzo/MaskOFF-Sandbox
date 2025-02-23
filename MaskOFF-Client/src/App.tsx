@@ -9,6 +9,7 @@ import useWebSocketUpdates from "./hooks/useWebSocket";
 import FriendsPage from "./pages/Friends";
 import {GlobalConfigContext} from "./config/GlobalConfig"
 import Posts from "./pages/Posts";  
+import Dashboard from "./pages/Dashboard";
 
 
 
@@ -22,11 +23,11 @@ const App = () => {
     <Routes>
       <Route path="/" element={<Navigate to="/home" />} />
       <Route path="/home" element={<Home />} />
-
+      <Route path="/dashboard" element={<Dashboard/>}/>
       <Route path="/verify-email" element={<EmailVerification />} />
       <Route path="/reset-password" element={<ResetPasswordForm/>}/>
-      <Route path={`/friends`} element={<FriendsPage/>}/>
-      <Route path="/:username/posts" element={<Posts />} />
+      <Route path="/friends" element={<FriendsPage/>}/>
+      <Route path="/posts" element={<Posts />} />
     </Routes>
   );
 };

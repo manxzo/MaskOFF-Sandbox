@@ -26,10 +26,7 @@ export const Navbar = () => {
   const {isOpen, onOpen, onOpenChange} = useDisclosure();
   // Choose nav items based on auth state.
   const navItems = token && user?.username
-    ? siteConfig.authenticatedNavItems.map((item) => ({
-        ...item,
-        href: item.href.replace(":username", user.username)
-      }))
+    ? siteConfig.authenticatedNavItems
     : siteConfig.unauthenticatedNavItems;
 
   const handleLogout = () => {

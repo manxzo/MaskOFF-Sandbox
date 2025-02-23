@@ -18,13 +18,13 @@ const FriendPage: React.FC = () => {
   const [loadingUsers, setLoadingUsers] = useState<boolean>(false);
 
 
-  // Fetch all users from the backend
+
   useEffect(() => {
     const fetchUsers = async () => {
       setLoadingUsers(true);
       try {
         const res = await listUsers();
-        // Expecting res.data.users as an array of { userID, username }
+  
         setAllUsers(res.data.users);
       } catch (error) {
         console.error("Error fetching users:", error);
@@ -75,9 +75,6 @@ const FriendPage: React.FC = () => {
               />
               <Button onPress={()=>sendRequest(user.userID)} color="danger" isIconOnly className="flex-shrink"><HeartFilledIcon/></Button>
             </CardBody>
-            <CardFooter>
-                
-            </CardFooter>
           </Card>
                 
               ))}
