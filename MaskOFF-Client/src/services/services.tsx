@@ -3,7 +3,7 @@ import { addToast } from "@heroui/toast";
 
 // Base URL from environment variable (REACT_APP_API_BASE_URL)
 const API_BASE_URL =
-  `${import.meta.env.VITE_NETWORK_API_URL}/api` || "http://localhost:3000/api";
+   "http://localhost:3000/api";
 
 // Create an Axios instance
 const apiClient = axios.create({

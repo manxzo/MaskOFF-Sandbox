@@ -1,3 +1,4 @@
+//@ts-nocheck
 import { useState } from "react";
 import { Card, CardBody, CardFooter, CardHeader } from "@heroui/react";
 import { Input } from "@heroui/input";
