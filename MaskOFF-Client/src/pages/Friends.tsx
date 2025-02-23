@@ -35,7 +35,7 @@ const FriendPage: React.FC = () => {
   }, []);
 
   // Filter out the logged-in user and any user already in a friend relationship or pending request.
-  const filteredFriends = allUsers.filter((friend) => {
+  const filteredFriends = allUsers?.filter((friend) => {
     if (!user) return false;
     if (friend.userID === user.userID) return false;
     const alreadySent = friendRequestsSent?.some((fr) => fr.userID === friend.userID);
@@ -165,17 +165,17 @@ const FriendPage: React.FC = () => {
             <p>You have no friends yet.</p>
           ) : (
             <div className="grid grid-cols-4 gap-4">
-              {user.friends.map((friend) => (
-                <Card key={friend.userID}>
+              {user?.friends?.map((friend) => (
+                <Card key={friend?.userID}>
                   <CardBody>
                     <User
                       avatarProps={{
-                        src: friend.avatar,
-                        name: friend.name.charAt(0),
+                        src: friend?.avatar,
+                        name: friend?.name?.charAt(0),
                         showFallback: true,
                       }}
                       description={
-                        <Link href={`/profile/${friend.username}`} size="sm">
+                        <Link href={`/profile/${friend?.username}`} size="sm">
                           @{friend.username}
                         </Link>
                       }
@@ -183,7 +183,7 @@ const FriendPage: React.FC = () => {
                     />
                   </CardBody>
                   <CardFooter className="flex justify-around">
-                    <Button onPress={() => handleMessage(friend.userID)} color="primary">
+                    <Button onPress={() => handleMessage(friend?.userID)} color="primary">
                       Message
                     </Button>
                   </CardFooter>
