@@ -14,10 +14,6 @@ export interface PublicProfile {
       achievements: string[];
       portfolio: string;
     };
-    anonymousInfo?: {
-      anonymousIdentity: string;
-      details: string;
-    };
   };
 }
 

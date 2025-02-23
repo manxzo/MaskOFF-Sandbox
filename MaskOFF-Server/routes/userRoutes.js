@@ -224,7 +224,7 @@ router.get("/user/:userID", verifyToken, async (req, res) => {
     if (!user) return res.status(404).json({ error: "User not found." });
     const profile = await UserProfile.findOne({ user: user._id });
     // updated: using custom instance methods for public profile conversion.
-    res.json({ ...user.toPublicProfile(), profile: profile ? profile.toPublicProfile() : {} });
+    res.json({ ...user.toJSON(), profile: profile ? profile.toJSON() : {} });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -317,9 +317,7 @@ router.get("/user/by-username/:username", async (req, res) => {
     if (!user) return res.status(404).json({ error: "user not found" });
     const profile = await UserProfile.findOne({ user: user._id });
     res.json({
-      userID: user._id,
-      username: user.username,
-      name: user.name,
+      user:user? user.toPublicProfile() : {},
       profile: profile ? profile.toPublicProfile() : {}
     });
   } catch (err) {
