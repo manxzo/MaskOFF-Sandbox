@@ -1,6 +1,24 @@
 // src/contexts/GlobalConfigContext.tsx
 import React, { createContext, useState, ReactNode } from "react";
 
+export interface PublicProfile {
+  userID: string;
+  username: string;
+  name: string;
+  profile: {
+    publicInfo?: {
+      bio: string;
+      skills: string[];
+      achievements: string[];
+      portfolio: string;
+    };
+    anonymousInfo?: {
+      anonymousIdentity: string;
+      details: string;
+    };
+  };
+}
+
 export interface Friend {
   userID: string;
   username: string;
