@@ -59,7 +59,7 @@ const OnboardingModal = ({ isOpen, onClose }: { isOpen: boolean; onClose: () => 
   return (
     <Modal isOpen={isOpen} onOpenChange={onClose} size="md">
       <ModalContent>
-        {(onCloseModal) => (
+        {(_onCloseModal) => (
           <div className="p-4">
             <ModalHeader>onboarding</ModalHeader>
             <ModalBody>

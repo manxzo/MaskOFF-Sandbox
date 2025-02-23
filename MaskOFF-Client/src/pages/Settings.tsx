@@ -67,7 +67,7 @@ const Settings = () => {
                 onChange={(e) => setAchievements(e.target.value)}
               />
               <Input
-                label="portfolio"
+                label="Portfolio"
                 placeholder="enter portfolio link or details"
                 value={portfolio}
                 onChange={(e) => setPortfolio(e.target.value)}
