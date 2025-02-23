@@ -65,7 +65,7 @@ export const Navbar = () => {
 
                 ) : (
                   // For Login and Register in unauthenticated state, open modal.
-                  (item.label === "Profile") ? (
+                  (item.label === "Settings") ? (
                     <>
                       <User
                         avatarProps={{
