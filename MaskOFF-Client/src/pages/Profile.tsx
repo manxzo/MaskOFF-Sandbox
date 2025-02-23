@@ -47,16 +47,16 @@ const Profile = () => {
                 {profileData.name} (@{profileData.username})
               </h1>
               <p className={subtitle({ fullWidth: true })}>
-                bio: {profileData.profile?.publicInfo?.bio || "no bio provided."}
+                Bio: {profileData.profile?.publicInfo?.bio || "no bio provided."}
               </p>
               {profileData.profile?.publicInfo?.skills && (
-                <p>skills: {profileData.profile.publicInfo.skills.join(", ")}</p>
+                <p>Skills: {profileData.profile.publicInfo.skills.join(", ")}</p>
               )}
               {profileData.profile?.publicInfo?.achievements && (
-                <p>achievements: {profileData.profile.publicInfo.achievements.join(", ")}</p>
+                <p>Achievements: {profileData.profile.publicInfo.achievements.join(", ")}</p>
               )}
               {profileData.profile?.publicInfo?.portfolio && (
-                <p>portfolio: {profileData.profile.publicInfo.portfolio}</p>
+                <p>Portfolio: {profileData.profile.publicInfo.portfolio}</p>
               )}
             </CardBody>
           </Card>

@@ -43,25 +43,25 @@ const Settings = () => {
         <Card>
           <CardHeader>
             <h2 className={title({ size: "lg", color: "green", fullWidth: true })}>
-              profile settings
+              Profile Settings
             </h2>
           </CardHeader>
           <CardBody>
             <form onSubmit={handleSave} className="flex flex-col gap-4">
               <Textarea
-                label="bio"
+                label="Bio"
                 placeholder="enter your bio"
                 value={bio}
                 onChange={(e) => setBio(e.target.value)}
               />
               <Input
-                label="skills"
+                label="Skills"
                 placeholder="comma-separated list of skills"
                 value={skills}
                 onChange={(e) => setSkills(e.target.value)}
               />
               <Input
-                label="achievements"
+                label="Achievements"
                 placeholder="comma-separated list of achievements"
                 value={achievements}
                 onChange={(e) => setAchievements(e.target.value)}
@@ -73,7 +73,7 @@ const Settings = () => {
                 onChange={(e) => setPortfolio(e.target.value)}
               />
               <Button type="submit" color="primary" isLoading={loading}>
-                save settings
+                Save Settings
               </Button>
             </form>
           </CardBody>
