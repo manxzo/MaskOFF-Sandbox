@@ -4,6 +4,7 @@ import { EmailVerification } from "./pages/EmailVerification";
 import { ResetPasswordForm } from "./pages/PasswordReset";
 import FriendsPage from "./pages/Friends";
 import Posts from "./pages/Posts";
+import Jobs from "./pages/Jobs";
 import Dashboard from "./pages/Dashboard";
 import Profile from "./pages/Profile";
 import Settings from "./pages/Settings";
@@ -23,6 +24,7 @@ const App = () => {
       <Route path="/friends" element={<FriendsPage />} />
       <Route path="/posts" element={<Posts />} />
       <Route path="/chat/:chatID" element={<Chat />} />
+      <Route path="/jobs" element={<Jobs />} />
       <Route path="/profile/:username?" element={<Profile />} />
       <Route path="/settings" element={<Settings />} />
     </Routes>
