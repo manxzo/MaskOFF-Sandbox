@@ -1,34 +1,25 @@
 // src/hooks/useWebSocketUpdates.tsx
 import { useEffect, useContext } from "react";
-import { GlobalConfigContext } from "@/config/GlobalConfig";
+import { GlobalConfigContext } from "../config/GlobalConfig";
 import { 
   getFriends, 
   getFriendRequestsReceived, 
   getFriendRequestsSent, 
   listChats 
-} from "@/services/services";
+} from "../services/services";
 
-interface User {
-  userID: string;
-}
-
-const useWebSocketUpdates = (user: User | null) => {
+export const useWebSocketUpdates = () => {
   const globalContext = useContext(GlobalConfigContext);
   if (!globalContext) {
     throw new Error("useWebSocketUpdates must be used within a GlobalConfigProvider");
   }
-  const {
-    setFriends,
-    setFriendRequestsReceived,
-    setFriendRequestsSent,
-    setChats,
-  } = globalContext;
+  const { user, setFriends, setFriendRequestsReceived, setFriendRequestsSent, setChats } = globalContext;
 
   useEffect(() => {
     // Only create the connection if a user is logged in
     if (!user) return;
 
-    const ws = new WebSocket(import.meta.env.VITE_NETWORK_API_URL || "ws://localhost:3000");
+    const ws = new WebSocket("ws://localhost:3000");
 
     ws.onopen = () => {
       console.log("WebSocket connected");
@@ -36,41 +27,36 @@ const useWebSocketUpdates = (user: User | null) => {
       ws.send(JSON.stringify({ type: "AUTH", userID: user.userID }));
     };
 
-    ws.onmessage = async (event) => {
-      const data = JSON.parse(event.data);
-      console.log("WebSocket message received:", data);
+    ws.onmessage = async (event: MessageEvent) => {
+      try {
+        const data = JSON.parse(event.data);
+        console.log("WebSocket message received:", data);
 
-      if (data.type === "UPDATE_DATA") {
-        switch (data.update) {
-          case "friends":
-            try {
+        if (data.type === "UPDATE_DATA") {
+          switch (data.update) {
+            case "friends": {
               const res = await getFriends();
               setFriends(res.data.friends || []);
-            } catch (error) {
-              console.error("Error updating friends list:", error);
+              break;
             }
-            break;
-          case "friendRequests":
-            try {
+            case "friendRequests": {
               const resReceived = await getFriendRequestsReceived();
               setFriendRequestsReceived(resReceived.data.friendRequestsReceived || []);
               const resSent = await getFriendRequestsSent();
               setFriendRequestsSent(resSent.data.friendRequestsSent || []);
-            } catch (error) {
-              console.error("Error updating friend requests:", error);
+              break;
             }
-            break;
-          case "chats":
-            try {
+            case "chats": {
               const res = await listChats();
               setChats(res.data.chats || []);
-            } catch (error) {
-              console.error("Error updating chats:", error);
+              break;
             }
-            break;
-          default:
-            console.warn("Unknown update type:", data.update);
+            default:
+              console.warn("Unknown update type:", data.update);
+          }
         }
+      } catch (error) {
+        console.error("Error handling websocket message:", error);
       }
     };
 
@@ -84,7 +70,7 @@ const useWebSocketUpdates = (user: User | null) => {
 
     // Cleanup: close the connection when the component unmounts or user changes.
     return () => {
-      if (ws.readyState === WebSocket.OPEN) {
+      if (ws.readyState === WebSocket.OPEN || ws.readyState === WebSocket.CONNECTING) {
         ws.close();
       }
     };

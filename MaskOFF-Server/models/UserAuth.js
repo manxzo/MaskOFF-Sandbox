@@ -95,9 +95,8 @@ UserAuthSchema.set("toJSON", {
     return ret;
   },
 });
-UserAuthSchema.set("toPublicProfile", {
-  virtuals: true,
-  transform: (doc, ret) => {
+UserAuthSchema.methods.toPublicProfile = function() {
+  const ret = this.toObject({ virtuals: true });
     ret.userID = ret._id;
     delete ret._id;
     delete ret.__v;
@@ -110,8 +109,7 @@ UserAuthSchema.set("toPublicProfile", {
     delete ret.friendRequestsReceived;
     delete ret.friendRequestsSent;
     return ret;
-  },
-});
+  };
 UserAuthSchema.set("toObject", { virtuals: true });
 
 module.exports = mongoose.model("UserAuth", UserAuthSchema);

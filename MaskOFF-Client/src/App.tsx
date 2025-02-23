@@ -1,20 +1,19 @@
-// app.tsx
 import { Route, Routes, Navigate } from "react-router-dom";
-import { useContext } from "react";
 import Home from "./pages/Home";
 import { EmailVerification } from "./pages/EmailVerification";
 import { ResetPasswordForm } from "./pages/PasswordReset";
-import useWebSocketUpdates from "./hooks/useWebSocket";
 import FriendsPage from "./pages/Friends";
+import Posts from "./pages/Posts";
+import Dashboard from "./pages/Dashboard";
 import Posts from "./pages/Posts";  
 import Dashboard from "./pages/Dashboard";
 import Profile from "./pages/Profile";
 import Settings from "./pages/Settings";
-import { GlobalConfigContext } from "./config/GlobalConfig";
+
+
 
 const App = () => {
-  const { user } = useContext(GlobalConfigContext);
-  useWebSocketUpdates(user);
+
   return (
     <Routes>
       <Route path="/" element={<Navigate to="/home" />} />

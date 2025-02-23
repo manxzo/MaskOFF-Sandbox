@@ -6,9 +6,10 @@ import {
   NavbarBrand,
   NavbarContent,
   NavbarItem,
-  
+
+
 } from "@heroui/navbar";
-import { useDisclosure } from "@heroui/react";
+import { useDisclosure, User } from "@heroui/react";
 import clsx from "clsx";
 import { siteConfig } from "@/config/site";
 import { GlobalConfigContext } from "@/config/GlobalConfig";
@@ -23,9 +24,9 @@ export const Navbar = () => {
   const token = localStorage.getItem("token");
   const { logout } = useUser();
 
-  const {isOpen, onOpen, onOpenChange} = useDisclosure();
+  const { isOpen, onOpen, onOpenChange } = useDisclosure();
   // Choose nav items based on auth state.
-  const navItems = token && user?.username
+  const navItems = token
     ? siteConfig.authenticatedNavItems
     : siteConfig.unauthenticatedNavItems;
 
@@ -49,35 +50,52 @@ export const Navbar = () => {
           {navItems.map((item) => (
             <NavbarItem key={item.link}>
               {item.label === "Logout" ? (
-                <Button variant="flat" onPress={()=>handleLogout}>
+                <Button variant="flat" onPress={handleLogout}>
                   {item.label}
                 </Button>
               ) : (
                 // For Login and Register in unauthenticated state, open modal.
                 (item.label === "Login/Register") ? (
                   <>
-                  <Button variant="flat" onPress={onOpen}>
-                    {item.label}
-                  </Button>
-                  <AuthModal onOpenChange={onOpenChange} isOpen={isOpen}/>
+                    <Button variant="flat" onPress={onOpen}>
+                      {item.label}
+                    </Button>
+                    <AuthModal onOpenChange={onOpenChange} isOpen={isOpen} />
                   </>
-                  
+
                 ) : (
-                  <Link
-                    className={clsx("px-3 py-2", "hover:text-primary")}
-                    color="foreground"
-                    href={item.link}
-                  >
-                    {item.label}
-                  </Link>
-                )
-              )}
+                  // For Login and Register in unauthenticated state, open modal.
+                  (item.label === "Profile") ? (
+                    <>
+                      <User
+                        avatarProps={{
+                          src: user?.avatar,
+                          name:user?.name.charAt(0),
+                          showFallback:true,
+                        }}
+                        description={<Link href={`/profile`} size="sm">
+                        @{user?.username}
+                      </Link>}
+                        name={user?.name}
+                      />
+                    </>
+
+                  ) : (
+                    <Link
+                      className={clsx("px-3 py-2", "hover:text-primary")}
+                      color="foreground"
+                      href={item.link}
+                    >
+                      {item.label}
+                    </Link>
+                  )
+                ))}
             </NavbarItem>
           ))}
           <NavbarItem>
-            <ThemeSwitch/>
+            <ThemeSwitch />
           </NavbarItem>
-          
+
         </NavbarContent>
       </HeroUINavbar>
     </>
