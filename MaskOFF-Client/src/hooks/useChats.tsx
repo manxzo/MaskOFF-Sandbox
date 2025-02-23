@@ -9,20 +9,13 @@ import {
   deleteChat,
 } from "@/services/services";
 
-export interface ChatType {
-  chatID: string;
-  participants: string[];
-  messages: any[];
-  createdAt: string;
-  updatedAt: string;
-}
 
 const useChats = () => {
-  const [chats, setChats] = useState<ChatType[]>([]);
-  const [selectedChat, setSelectedChat] = useState<ChatType | null>(null);
-  const [messages, setMessages] = useState<any[]>([]);
-  const [loading, setLoading] = useState<boolean>(false);
-  const [error, setError] = useState<string | null>(null);
+  const [chats, setChats] = useState([]);
+  const [selectedChat, setSelectedChat] = useState(null);
+  const [messages, setMessages] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
 
   const fetchChats = async () => {
     setLoading(true);

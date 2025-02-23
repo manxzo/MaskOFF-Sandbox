@@ -1,7 +1,7 @@
 // src/contexts/GlobalConfigContext.tsx
 import React, { createContext, useState, useEffect, ReactNode } from "react";
 import { getUser } from "@/services/services";
-import {jwtDecode} from "jwt-decode";
+import { jwtDecode } from "jwt-decode";
 
 export interface PublicProfile {
   userID: string;
@@ -68,7 +68,7 @@ export interface Message {
 
 export interface Chat {
   chatID: string;
-  participants: [];
+  participants: Friend[];
   messages: Message[];
 }
 
@@ -104,7 +104,7 @@ export const GlobalConfigProvider = ({ children }: { children: ReactNode }) => {
   const [friendRequestsReceived, setFriendRequestsReceived] = useState<Friend[]>([]);
   const [error, setError] = useState<string | null>(null);
 
- 
+
   useEffect(() => {
     const token = localStorage.getItem("token");
     if (token) {
