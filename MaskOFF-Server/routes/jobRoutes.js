@@ -47,12 +47,24 @@ router.get("/jobs", async (req, res) => {
 
     const jobsWithProfile = await Promise.all(
       jobs.map(async (job) => {
+        // Added null check for job.user so the server doesn't crash if the user is deleted
+        if (!job.user) {
+          return {
+            ...job.toJSON(),
+            user: {
+              userID: null,
+              username: "Unknown User",
+              publicInfo: {},
+            },
+          };
+        }
+
         const profile = await UserProfile.findOne({ user: job.user._id });
         return {
           ...job.toJSON(),
           user: {
             userID: job.user._id,
-            username: job.user.username,
+            username: job.user.username || "Unknown User",
             publicInfo: profile ? profile.publicInfo : {},
           },
         };
