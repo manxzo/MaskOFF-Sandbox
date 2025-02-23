@@ -6,33 +6,56 @@ import { Card, CardBody, Spinner } from "@heroui/react";
 import { title, subtitle } from "@/components/primitives";
 import axios from "axios";
 
+interface PublicProfileResponse {
+  user: {
+    name: string;
+    username: string;
+    // add other fields if needed
+  };
+  profile: {
+    publicInfo: {
+      bio: string;
+      skills: string[];
+      achievements: string[];
+      portfolio: string;
+    };
+  };
+}
+
 const Profile = () => {
   const { username } = useParams<{ username: string | null }>();
   const navigate = useNavigate();
   const { user } = useContext(GlobalConfigContext)!;
-  const [profileData, setProfileData] = useState<any>(null);
+
+  const [profileData, setProfileData] = useState<PublicProfileResponse | null>(null);
   const [loading, setLoading] = useState(true);
 
-  // If no username is provided in the URL, redirect to the current user's profile URL.
-  useEffect(() => {
-    if (!username && user && user.username) {
-      navigate(`/profile/${user.username}`, { replace: true });
-    }
-  }, [username, user, navigate]);
 
-  // Fetch profile data using the username param (or fallback to context)
-  useEffect(() => {
-    const fetchProfile = async () => {
-      setLoading(true);
-      try {
-        if (username) {
-          const res = await axios.get(`/api/user/by-username/${username}`);
+          // Fetch public profile by username
+          const res = await axios.get<PublicProfileResponse>(`http://localhost:3000/api/user/by-username/${username}`);
+          console.log("API response:", res.data);
           setProfileData(res.data);
-        } else if (user) {
-          setProfileData(user.profile);
+        } else if (user && user.profile) {
+          // Use current user's profile details from context if no username parameter is provided
+          setProfileData({
+            user: {
+              name: user.name,
+              username: user.username,
+            },
+            profile: {
+              publicInfo: {
+                bio: user.profile.publicInfo.bio,
+                skills: user.profile.publicInfo.skills,
+                achievements: user.profile.publicInfo.achievements,
+                portfolio: user.profile.publicInfo.portfolio,
+              },
+            },
+          });
+
+      
         }
       } catch (err) {
-        console.error("error fetching profile:", err);
+        console.error("Error fetching profile:", err);
       } finally {
         setLoading(false);
       }
@@ -49,18 +72,18 @@ const Profile = () => {
           <Card>
             <CardBody>
               <h1 className={title({ size: "lg", color: "cyan", fullWidth: true })}>
-                {profileData.name} (@{profileData.username})
+                {profileData.user.name} (@{profileData.user.username})
               </h1>
               <p className={subtitle({ fullWidth: true })}>
-                Bio: {profileData.profile?.publicInfo?.bio || "no bio provided."}
+                Bio: {profileData.profile.publicInfo.bio || "No bio provided."}
               </p>
-              {profileData.profile?.publicInfo?.skills && (
+              {profileData.profile.publicInfo.skills && (
                 <p>Skills: {profileData.profile.publicInfo.skills.join(", ")}</p>
               )}
-              {profileData.profile?.publicInfo?.achievements && (
+              {profileData.profile.publicInfo.achievements && (
                 <p>Achievements: {profileData.profile.publicInfo.achievements.join(", ")}</p>
               )}
-              {profileData.profile?.publicInfo?.portfolio && (
+              {profileData.profile.publicInfo.portfolio && (
                 <p>Portfolio: {profileData.profile.publicInfo.portfolio}</p>
               )}
             </CardBody>
