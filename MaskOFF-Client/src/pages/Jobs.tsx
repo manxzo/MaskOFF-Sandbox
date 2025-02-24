@@ -113,7 +113,7 @@ const Jobs = () => {
   if (jobsLoading) {
     return (
       <DefaultLayout>
-        <div className="flex items-center justify-center h-screen">
+        <div className="flex items-center justify-center">
           <Spinner size="lg" />
         </div>
       </DefaultLayout>
@@ -156,7 +156,6 @@ const Jobs = () => {
             setInitialFormData(formData);
           }}
           onDelete={deleteExistingJob}
-          onApply={handleApply}
         />
 
         <JobModal

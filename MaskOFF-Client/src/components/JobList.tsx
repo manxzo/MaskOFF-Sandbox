@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Button, Card, CardHeader, CardBody, CardFooter, Modal, ModalContent, ModalHeader, ModalBody, ModalFooter, Textarea } from "@heroui/react";
+import { Button, Card, CardHeader, CardBody, CardFooter, Modal, ModalContent, ModalHeader, ModalBody, ModalFooter, Textarea, Spinner } from "@heroui/react";
 import { getJobApplications, updateApplicationStatus, applyToJob } from "@/services/services";
 import { addToast } from "@heroui/toast";
 
@@ -28,7 +28,6 @@ interface JobListProps {
   currentUserID: string;
   onEdit: (job: Job) => void;
   onDelete: (jobID: string) => void;
-  onApply: (jobID: string) => void;
 }
 
 interface Application {
@@ -43,7 +42,7 @@ interface Application {
   createdAt: string;
 }
 
-const JobList = ({ jobs, currentUserID, onEdit, onDelete, onApply }: JobListProps) => {
+const JobList = ({ jobs, currentUserID, onEdit, onDelete }: Omit<JobListProps, 'onApply'>) => {
   const [expandedJob, setExpandedJob] = useState<string | null>(null);
   const [applications, setApplications] = useState<Application[]>([]);
   const [loading, setLoading] = useState(false);
@@ -144,13 +143,16 @@ const JobList = ({ jobs, currentUserID, onEdit, onDelete, onApply }: JobListProp
       {jobs?.map((job) => (
         <Card key={job.jobID} className="mb-4">
           <CardHeader>
-            <h3>{job.title}</h3>
-            <p>Posted by: {job.user.username}</p>
+            <div className="flex justify-between items-start">
+              <div>
+                <h3 className="text-2xl font-bold">{job.title}</h3>
+                <p className="text-sm text-gray-500">Posted {formatDate(job.createdAt)} by {job.user.username}</p>
+              </div>
+            </div>
           </CardHeader>
           <CardBody>
             <p>{job.description}</p>
-            <p>Price: ${job.price}</p>
-            <p>Contract Period: {job.contractPeriod} days</p>
+            <p className="text-md text-teal-500">Price: ${job.price} | <span>Contract Period: {job.contractPeriod} days</span></p>
           </CardBody>
           <CardFooter>
             {isJobAuthor(job) ? (
@@ -173,7 +175,11 @@ const JobList = ({ jobs, currentUserID, onEdit, onDelete, onApply }: JobListProp
                 {expandedJob === job.jobID && (
                   <div className="mt-4">
                     <h4>Applications</h4>
-                    {applications.length === 0 ? (
+                    {loading ? (
+                      <div className="flex justify-center p-4">
+                        <Spinner size="sm" />
+                      </div>
+                    ) : applications.length === 0 ? (
                       <p>No applications yet</p>
                     ) : (
                       applications.map(app => (
@@ -224,7 +230,7 @@ const JobList = ({ jobs, currentUserID, onEdit, onDelete, onApply }: JobListProp
           <ModalBody>
             <Textarea
               label="Application Message"
-              placeholder="Tell us why you're interested in this job..."
+              placeholder="Why should we hire you?"
               value={applicationMessage}
               onChange={(e) => setApplicationMessage(e.target.value)}
             />
