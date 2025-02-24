@@ -6,43 +6,26 @@ import { Card, CardHeader, CardBody, Divider, Spinner } from "@heroui/react";
 import { title, subtitle } from "@/components/primitives";
 
 const Explore = () => {
-  const {
-    posts,
-    loading: postsLoading,
-    error: postsError,
-    fetchPosts,
-  } = usePosts();
-  const {
-    jobs,
-    loading: jobsLoading,
-    error: jobsError,
-    fetchJobs,
-  } = useJobs();
-
-  // local state for refresh trigger if need
+  const { posts, loading: postsLoading, error: postsError, fetchPosts } = usePosts();
+  const { jobs, loading: jobsLoading, error: jobsError, fetchJobs } = useJobs();
   const [refreshTrigger, setRefreshTrigger] = useState(0);
 
   useEffect(() => {
     fetchPosts();
     fetchJobs();
-  }, [refreshTrigger, fetchPosts, fetchJobs]);
+  }, [refreshTrigger]);
 
   return (
     <DefaultLayout>
       <div className="p-8">
-        <h1 className={title({ size: "lg", color: "cyan", fullWidth: true })}>
-          Explore
-        </h1>
+        <h1 className={title({ size: "lg", color: "cyan", fullWidth: true })}>Explore</h1>
         <p className={subtitle({ fullWidth: true })}>
           Discover the latest posts and job opportunities from the community.
         </p>
-
         <Divider className="my-6" />
 
         <section>
-          <h2 className={title({ size: "md", color: "violet", fullWidth: true })}>
-            Recent Posts
-          </h2>
+          <h2 className={title({ size: "md", color: "violet", fullWidth: true })}>Recent Posts</h2>
           {postsLoading ? (
             <Spinner size="lg" />
           ) : postsError ? (
@@ -54,9 +37,7 @@ const Explore = () => {
               <Card key={post.postID || post._id} className="mb-4">
                 <CardHeader>
                   <h3 className={title({ size: "sm" })}>
-                    {post.isAnonymous
-                      ? post.user.anonymousIdentity
-                      : post.user.username}
+                    {post.isAnonymous ? post.user.anonymousIdentity : post.user.username}
                   </h3>
                 </CardHeader>
                 <CardBody>
@@ -89,6 +70,7 @@ const Explore = () => {
               <Card key={job.jobID} className="mb-4">
                 <CardHeader>
                   <h3 className={title({ size: "sm" })}>{job.title}</h3>
+                  <p>Posted by: {job.user.username}</p>
                 </CardHeader>
                 <CardBody>
                   <p>{job.description}</p>
