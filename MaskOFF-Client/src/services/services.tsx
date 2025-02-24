@@ -162,6 +162,7 @@ export const sendMessage = (payload: {
   recipientID?: string;
   text: string;
   chatType?: string;
+  jobID?:string;
 }) => apiClient.post("/chat/send", payload);
 
 // Get messages for a chat
