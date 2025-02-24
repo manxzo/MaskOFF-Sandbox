@@ -32,19 +32,25 @@ interface JobListProps {
 const JobList = ({ jobs, currentUserID, onEdit, onDelete, onApply }: JobListProps) => {
   // Check if the current user created this job
   const isJobAuthor = (job: Job) => {
+    // Add null checks
+    if (!job.user || !job.user.userID || !currentUserID) return false;
     return job.user.userID === currentUserID;
   };
 
   // Make dates look nice and readable
   const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    return date.toLocaleString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    });
+    try {
+      const date = new Date(dateString);
+      return date.toLocaleString('en-US', {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+      });
+    } catch (err) {
+      return 'Date not available';
+    }
   };
 
   return (
@@ -54,17 +60,17 @@ const JobList = ({ jobs, currentUserID, onEdit, onDelete, onApply }: JobListProp
         <Card key={job.jobID}>
           {/* Job header with title and poster info */}
           <CardHeader>
-            <h2>Job Title: {job.title}</h2>
+            <h2>Job Title: {job.title || 'Untitled'}</h2>
             <div>
-              Posted by: {job.user.username}
+              Posted by: {job.user?.username || 'Unknown User'}
             </div>
           </CardHeader>
 
           {/* Job details section */}
           <CardBody>
-            <h3>Job Description: {job.description}</h3>
-            <p>Contract Period (Days): {job.contractPeriod}</p>
-            <p>Job Price: ${job.price}</p>
+            <h3>Job Description: {job.description || 'No description available'}</h3>
+            <p>Contract Period (Days): {job.contractPeriod || 'Not specified'}</p>
+            <p>Job Price: ${job.price || 0}</p>
             <p>Last Updated: {formatDate(job.updatedAt)}</p>
           </CardBody>
 

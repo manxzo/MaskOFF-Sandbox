@@ -263,22 +263,22 @@ This section details the Create, Read, Update, and Delete (CRUD) operations avai
 
 - **Create Job Post**
   - **Endpoint:** `POST /api/posts`
-  - **Description:** Creates a new job post that includes content, tags, and an anonymity flag. Tags must include either **#Service** or **#Job**.
+  - **Description:** Creates a new post that includes content, tags, and an anonymity flag. Tags must include either **#Service** or **#Job**.
 - **Read Job Posts**
 
   - **Endpoint:** `GET /api/posts`
-  - **Description:** Retrieves a list of all job posts with associated user profile information.
+  - **Description:** Retrieves a list of all posts with associated user profile information.
   - **Endpoint:** `GET /api/posts/:postID`
-  - **Description:** Retrieves detailed information for a specific job post.
+  - **Description:** Retrieves detailed information for a specific post.
 
 - **Update Job Post**
 
   - **Endpoint:** `PUT /api/posts/:postID`
-  - **Description:** Updates the content, tags, or anonymity flag of a specific job post.
+  - **Description:** Updates the content, tags, or anonymity flag of a specific post.
 
 - **Delete Job Post**
   - **Endpoint:** `DELETE /api/posts/:postID`
-  - **Description:** Deletes a specific job post.
+  - **Description:** Deletes a specific post.
 
 ---
 
@@ -337,6 +337,31 @@ This section details the Create, Read, Update, and Delete (CRUD) operations avai
 - **Read Friend List**
   - **Endpoint:** `GET /api/friends`
   - **Description:** Retrieves the authenticated user's list of friends.
+
+---
+
+### Job Operations
+
+- **Create Job**
+
+  - **Endpoint:** `POST /api/jobs`
+  - **Description:** Creates a new job listing with title, description, price, and contract period.
+
+- **Read Jobs**
+
+  - **Endpoint:** `GET /api/jobs`
+  - **Description:** Retrieves all job listings with associated user profile information.
+  - **Endpoint:** `GET /api/jobs/:jobID`
+  - **Description:** Retrieves detailed information for a specific job.
+
+- **Update Job**
+
+  - **Endpoint:** `PUT /api/jobs/:jobID`
+  - **Description:** Updates an existing job's details. Only the job creator can perform this action.
+
+- **Delete Job**
+  - **Endpoint:** `DELETE /api/jobs/:jobID`
+  - **Description:** Deletes a specific job listing. Only the job creator can perform this action.
 
 ---
 
