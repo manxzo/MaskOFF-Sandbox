@@ -1,11 +1,8 @@
 import { useState, useContext } from "react";
 import {
   sendFriendRequest,
-  getFriendRequestsReceived,
-  getFriendRequestsSent,
   acceptFriendRequest,
   rejectFriendRequest,
-  getFriends,
 } from "@/services/services";
 import { GlobalConfigContext } from "@/config/GlobalConfig";
 
