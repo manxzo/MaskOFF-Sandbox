@@ -65,7 +65,7 @@ const Settings = () => {
       await uploadAvatar(avatarFile);
       setUser({
         ...user,
-        avatar: `${import.meta.env.VITE_API_BASE_URL || "http://localhost:3000/api"}/avatar/${user?.userID}`,
+        avatar: `${`http://${import.meta.env.VITE_API_SERVER_URL}/api` || "http://localhost:3000/api"}/avatar/${user?.userID}`,
       });
       addToast({ title: "Avatar Updated", color: "success" });
     } catch (err: any) {
