@@ -6,6 +6,7 @@ const { generateToken, verifyToken } = require("../components/jwtUtils");
 const fs = require("fs");
 const multer = require("multer");
 const upload = multer({ dest: "uploads/" });
+const { sendToAll } = require("../components/wsUtils");
 // MailerSend-based email utility functions
 const { sendVerificationEmail, sendForgotPasswordEmail } = require("../components/emailUtils");
 
@@ -91,7 +92,10 @@ router.post("/register", async (req, res) => {
       verifyUrl: verificationUrl,
       supportEmail: process.env.SUPPORT_EMAIL || "support@domain.com",
     });
-
+    sendToAll({
+      type: "UPDATE_DATA",
+      update: "refresh",
+    })
     return res.status(201).json({
       message: "User registered successfully. Please verify your email.",
       user: {
@@ -126,6 +130,10 @@ router.get("/verify-email", async (req, res) => {
     user.emailVerified = true;
     user.verificationToken = undefined;
     await user.save();
+    sendToAll({
+      type: "UPDATE_DATA",
+      update: "refresh",
+    })
     res.json({ message: "Email verified successfully." });
   } catch (err) {
     console.error("Email verification error:", err);
@@ -240,6 +248,10 @@ router.put("/profile/:userID", verifyToken, async (req, res) => {
       { new: true }
     );
     if (!profile) return res.status(404).json({ error: "Profile not found." });
+    sendToAll({
+      type: "UPDATE_DATA",
+      update: "refresh",
+    })
     res.json({ message: "Profile updated", profile: profile.toJSON() });
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -267,7 +279,10 @@ router.post("/upload-avatar", verifyToken, upload.single("avatar"), async (req, 
 
     // remove the temporary file
     fs.unlinkSync(req.file.path);
-
+    sendToAll({
+      type: "UPDATE_DATA",
+      update: "refresh",
+    })
     res.json({ message: "Avatar uploaded successfully." });
   } catch (err) {
     console.error("Upload error:", err);

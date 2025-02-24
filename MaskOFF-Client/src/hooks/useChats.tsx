@@ -4,28 +4,34 @@ import {
   listChats,
   sendMessage,
   getMessages,
-  deleteMessage,
-  editMessage,
   deleteChat,
+  editMessage,
+  updateJobChatSettings,
 } from "@/services/services";
 
-
 const useChats = () => {
-  const [chats, setChats] = useState([]);
-  const [selectedChat, setSelectedChat] = useState(null);
-  const [messages, setMessages] = useState([]);
+  const [chats, setChats] = useState<any[]>([]);
+  const [selectedChat, setSelectedChat] = useState<any>(null);
+  const [messages, setMessages] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
+  const [error, setError] = useState<string | null>(null);
 
   const fetchChats = async () => {
     setLoading(true);
     setError(null);
     try {
       const res = await listChats();
-      setChats(res.data.chats || res.data);
-      return res.data;
+      const chatsFromRes = res.data.chats || res.data;
+      // Deduplicate chats by chatID
+      const dedupedChats = Array.from(
+        new Map(chatsFromRes.map((chat: any) => [chat.chatID, chat])).values()
+      );
+      setChats(dedupedChats);
+      return dedupedChats;
     } catch (err: any) {
-      setError(err.response?.data?.error || err.message || "Error fetching chats");
+      setError(
+        err.response?.data?.error || err.message || "Error fetching chats"
+      );
       throw err;
     } finally {
       setLoading(false);
@@ -36,34 +42,42 @@ const useChats = () => {
     setLoading(true);
     setError(null);
     try {
-      // find chat in state; if not, you might refetch all chats
       const chat = chats.find((c) => c.chatID === chatID);
       if (chat) {
         setSelectedChat(chat);
-        // fetch messages for the selected chat
         const res = await getMessages(chatID);
         setMessages(res.data.messages || res.data);
         return chat;
       }
     } catch (err: any) {
-      setError(err.response?.data?.error || err.message || "Error fetching chat messages");
+      setError(
+        err.response?.data?.error ||
+          err.message ||
+          "Error fetching chat messages"
+      );
       throw err;
     } finally {
       setLoading(false);
     }
   };
 
-  const sendChatMessage = async (chatID: string, text: string) => {
+  const sendChatMessage = async (
+    payload: { chatID?: string; recipientID?: string; text: string; chatType?: string;jobID?:string }
+  ) => {
     setLoading(true);
     setError(null);
     try {
-      const res = await sendMessage(chatID, text);
-      // refresh messages after sending
+      const res = await sendMessage(payload);
+      const chatID = payload.chatID || res.data.chat.chatID;
       const updatedRes = await getMessages(chatID);
       setMessages(updatedRes.data.messages || updatedRes.data);
       return res.data;
     } catch (err: any) {
-      setError(err.response?.data?.error || err.message || "Error sending message");
+      setError(
+        err.response?.data?.error ||
+          err.message ||
+          "Error sending message"
+      );
       throw err;
     } finally {
       setLoading(false);
@@ -82,14 +96,60 @@ const useChats = () => {
       }
       return res.data;
     } catch (err: any) {
-      setError(err.response?.data?.error || err.message || "Error deleting chat");
+      setError(
+        err.response?.data?.error || err.message || "Error deleting chat"
+      );
       throw err;
     } finally {
       setLoading(false);
     }
   };
 
-  // You can add removeMessage, updateChatMessage similarly if needed
+  const editChatMessage = async (
+    chatID: string,
+    messageID: string,
+    newText: string
+  ) => {
+    setLoading(true);
+    setError(null);
+    try {
+      const res = await editMessage(chatID, messageID, newText);
+      const updatedRes = await getMessages(chatID);
+      setMessages(updatedRes.data.messages || updatedRes.data);
+      return res.data;
+    } catch (err: any) {
+      setError(
+        err.response?.data?.error || err.message || "Error editing message"
+      );
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const updateJobSettings = async (
+    chatID: string,
+    updateData: { revealIdentity?: boolean; status?: string; offerPrice?: number }
+  ) => {
+    setLoading(true);
+    setError(null);
+    try {
+      const res = await updateJobChatSettings(chatID, updateData);
+      if (selectedChat && selectedChat.chatID === chatID) {
+        setSelectedChat(res.data.chat);
+      }
+      return res.data;
+    } catch (err: any) {
+      setError(
+        err.response?.data?.error ||
+          err.message ||
+          "Error updating chat settings"
+      );
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return {
     chats,
@@ -101,6 +161,8 @@ const useChats = () => {
     selectChatByID,
     sendChatMessage,
     removeChat,
+    editChatMessage,
+    updateJobSettings,
     setChats,
     setSelectedChat,
     setMessages,

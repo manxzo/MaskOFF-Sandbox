@@ -4,7 +4,7 @@ const Job = require("../models/Job");
 const UserProfile = require("../models/UserProfile");
 const { verifyToken } = require("../components/jwtUtils");
 const JobApplication = require("../models/JobApplication");
-
+const { sendToAll } = require("../components/wsUtils");
 // create new job
 router.post("/jobs", verifyToken, async (req, res) => {
   try {
@@ -31,7 +31,10 @@ router.post("/jobs", verifyToken, async (req, res) => {
       "user",
       "username"
     );
-
+    sendToAll({
+      type: "UPDATE_DATA",
+      update: "refresh",
+    })
     res.status(201).json({
       message: "Job created successfully.",
       job: populatedJob.toJSON(),
@@ -71,6 +74,7 @@ router.get("/jobs", async (req, res) => {
         };
       })
     );
+  
     res.json({ jobs: jobsWithProfile });
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -88,7 +92,7 @@ router.get("/jobs/:jobID", async (req, res) => {
     if (!job) return res.status(404).json({ error: "Job not found." });
 
     const profile = await UserProfile.findOne({ user: job.user._id });
-
+   
     res.json({
       job: {
         ...job.toJSON(),
@@ -99,6 +103,7 @@ router.get("/jobs/:jobID", async (req, res) => {
         },
       },
     });
+
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -128,6 +133,10 @@ router.put("/jobs/:jobID", verifyToken, async (req, res) => {
     if (typeof isComplete !== "undefined") job.isComplete = isComplete;
 
     await job.save();
+    sendToAll({
+      type: "UPDATE_DATA",
+      update: "refresh",
+    })
     res.json({ message: "Job updated", job: job.toJSON() });
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -150,6 +159,10 @@ router.delete("/jobs/:jobID", verifyToken, async (req, res) => {
     }
 
     await Job.findByIdAndDelete(jobID);
+    sendToAll({
+      type: "UPDATE_DATA",
+      update: "refresh",
+    })
     res.json({ message: "Job deleted" });
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -207,7 +220,10 @@ router.post("/jobs/:jobID/apply", verifyToken, async (req, res) => {
     });
 
     await application.save();
-
+    sendToAll({
+      type: "UPDATE_DATA",
+      update: "refresh",
+    })
     res.status(201).json({
       message: "Application submitted successfully",
       application: application.toJSON(),
@@ -288,7 +304,10 @@ router.put(
       if (!application) {
         return res.status(404).json({ error: "Application not found" });
       }
-
+      sendToAll({
+        type: "UPDATE_DATA",
+        update: "refresh",
+      })
       res.json({ application });
     } catch (err) {
       res.status(500).json({ error: err.message });

@@ -1,19 +1,20 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState,useContext } from "react";
 import DefaultLayout from "@/layouts/default";
 import usePosts from "@/hooks/usePosts";
 import useJobs from "@/hooks/useJobs";
 import { Card, CardHeader, CardBody, Divider, Spinner } from "@heroui/react";
 import { title, subtitle } from "@/components/primitives";
+import { GlobalConfigContext } from "@/config/GlobalConfig";
 
 const Explore = () => {
   const { posts, loading: postsLoading, error: postsError, fetchPosts } = usePosts();
   const { jobs, loading: jobsLoading, error: jobsError, fetchJobs } = useJobs();
-  const [refreshTrigger, setRefreshTrigger] = useState(0);
-
+  const {refresh} = useContext(GlobalConfigContext);
   useEffect(() => {
     fetchPosts();
     fetchJobs();
-  }, [refreshTrigger]);
+  }, [refresh, fetchPosts, fetchJobs]);
+
 
   return (
     <DefaultLayout>

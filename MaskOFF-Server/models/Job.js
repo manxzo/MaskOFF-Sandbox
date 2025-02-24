@@ -21,7 +21,7 @@ const jobSchema = new mongoose.Schema(
       min: 0,
     },
     contractPeriod: {
-      type: String,
+      type: Number,
       required: true,
     },
     isComplete: {

@@ -1,65 +1,77 @@
-const mongoose = require('mongoose');
-const crypto = require('crypto');
-require('dotenv').config(); // make sure .env is loaded
+const mongoose = require("mongoose");
+const crypto = require("crypto");
+require("dotenv").config();
+const UserProfile = require("../models/UserProfile");
 
-// derive a 32-byte AES key from the secret
 const AES_SECRET_KEY = process.env.AES_SECRET_KEY;
-const getAESKey = () => crypto.createHash('sha256').update(String(AES_SECRET_KEY)).digest();
+const getAESKey = () =>
+  crypto.createHash("sha256").update(String(AES_SECRET_KEY)).digest();
 
-// encryption function for chat messages
 const encryptMessage = (text) => {
   const iv = crypto.randomBytes(16);
   const key = getAESKey();
-  const cipher = crypto.createCipheriv('aes-256-cbc', key, iv);
-  let encrypted = cipher.update(text, 'utf8', 'hex');
-  encrypted += cipher.final('hex');
-  return { iv: iv.toString('hex'), encryptedData: encrypted };
+  const cipher = crypto.createCipheriv("aes-256-cbc", key, iv);
+  let encrypted = cipher.update(text, "utf8", "hex");
+  encrypted += cipher.final("hex");
+  return { iv: iv.toString("hex"), encryptedData: encrypted };
 };
 
-// decryption function for chat messages
 const decryptMessage = (encryptedText, iv) => {
   const key = getAESKey();
-  const decipher = crypto.createDecipheriv('aes-256-cbc', key, Buffer.from(iv, 'hex'));
-  let decrypted = decipher.update(encryptedText, 'hex', 'utf8');
-  decrypted += decipher.final('utf8');
+  const decipher = crypto.createDecipheriv("aes-256-cbc", key, Buffer.from(iv, "hex"));
+  let decrypted = decipher.update(encryptedText, "hex", "utf8");
+  decrypted += decipher.final("utf8");
   return decrypted;
 };
 
 const messageSchema = new mongoose.Schema({
-  sender: { type: mongoose.Schema.Types.ObjectId, ref: 'UserAuth', required: true },
-  recipient: { type: mongoose.Schema.Types.ObjectId, ref: 'UserAuth' },
+  sender: { type: mongoose.Schema.Types.ObjectId, ref: "UserAuth", required: true },
+  recipient: { type: mongoose.Schema.Types.ObjectId, ref: "UserAuth" },
   encryptedMessage: { type: String, required: true },
   iv: { type: String, required: true },
-  timestamp: { type: Date, default: Date.now }
+  timestamp: { type: Date, default: Date.now },
 });
+
+const transactionSchema = new mongoose.Schema({
+  applicantID: { type: mongoose.Schema.Types.ObjectId, ref: "UserAuth" },
+  applicantInfo: { identity: { type: String }, details: { type: String } },
+  jobID:{type:mongoose.Schema.Types.ObjectId,ref:"Job"},
+  offerPrice: Number,
+  status: { type: String, enum: ["pending", "accepted", "completed"], default: "pending" },
+  applicantAnonymous: { type: Boolean, default: true },
+  revealIdentity: { type: Boolean, default: false },
+}, { _id: false });
 
 const chatLogSchema = new mongoose.Schema(
   {
-    participants: [{
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'UserAuth',
-      required: true
-    }],
-    messages: [messageSchema]
+    participants: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "UserAuth",
+        required: true,
+      },
+    ],
+    messages: [messageSchema],
+    chatType: { type: String, enum: ["general", "job"], default: "general" },
+    transaction: {type:transactionSchema,default:{}},
   },
   { timestamps: true }
 );
 
-// add a new encrypted message
-chatLogSchema.methods.addMessage = async function(sender, recipient, text) {
+chatLogSchema.methods.addMessage = async function (sender, recipient, text) {
   const { iv, encryptedData } = encryptMessage(text);
   this.messages.push({ sender, recipient, encryptedMessage: encryptedData, iv });
   await this.save();
 };
 
-// delete message by its ID
-chatLogSchema.methods.deleteMessage = async function(messageId) {
-  this.messages = this.messages.filter(msg => msg._id.toString() !== messageId.toString());
+chatLogSchema.methods.deleteMessage = async function (messageId) {
+  this.messages = this.messages.filter(
+    (msg) => msg._id.toString() !== messageId.toString()
+  );
   await this.save();
 };
 
-// edit message by its ID (re-encrypt new text)
-chatLogSchema.methods.editMessage = async function(messageId, newText) {
+chatLogSchema.methods.editMessage = async function (messageId, newText) {
   const message = this.messages.id(messageId);
   if (message) {
     const { iv, encryptedData } = encryptMessage(newText);
@@ -72,18 +84,16 @@ chatLogSchema.methods.editMessage = async function(messageId, newText) {
   }
 };
 
-// get all messages decrypted
-chatLogSchema.methods.getDecryptedMessages = function() {
-  return this.messages.map(msg => ({
-    msgID: msg._id.toHexString(),  // custom label
+chatLogSchema.methods.getDecryptedMessages = function () {
+  return this.messages.map((msg) => ({
+    msgID: msg._id.toHexString(),
     sender: msg.sender,
     recipient: msg.recipient,
     message: decryptMessage(msg.encryptedMessage, msg.iv),
-    timestamp: msg.timestamp
+    timestamp: msg.timestamp,
   }));
 };
 
-// transform _id to chatID
 chatLogSchema.set("toJSON", {
   virtuals: true,
   transform: (doc, ret) => {
@@ -91,8 +101,24 @@ chatLogSchema.set("toJSON", {
     delete ret._id;
     delete ret.__v;
     return ret;
-  }
+  },
 });
 chatLogSchema.set("toObject", { virtuals: true });
+
+chatLogSchema.methods.toAnonymous = async function () {
+  const chat = this.toObject({ virtuals: true });
+  if (chat.chatType === "job" && chat.transaction && chat.transaction.applicantAnonymous && !chat.transaction.revealIdentity) {
+    const profile = await UserProfile.findOne({ user: chat.transaction.applicantID });
+    if (profile && profile.anonymousInfo && profile.anonymousInfo.anonymousIdentity) {
+      chat.participants = chat.participants.map((participant) => {
+        if (participant._id ? participant._id.toString() === chat.transaction.applicantID.toString() : participant.toString() === chat.transaction.applicantID.toString()) {
+          return { ...participant, anonymousIdentity: profile.anonymousInfo.anonymousIdentity };
+        }
+        return participant;
+      });
+    }
+  }
+  return chat;
+};
 
 module.exports = mongoose.model("ChatLog", chatLogSchema);

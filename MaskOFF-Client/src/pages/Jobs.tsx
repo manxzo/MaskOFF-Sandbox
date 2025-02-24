@@ -1,18 +1,22 @@
-import { useState, useEffect } from "react";
-import { Button } from "@heroui/react";
-import { Spinner } from "@heroui/react";
-import useJobs from "@/hooks/useJobs";
+//@ts-nocheck
+import React, { useEffect, useState, useContext } from "react";
 import DefaultLayout from "@/layouts/default";
+import useJobs from "@/hooks/useJobs";
+import useChats from "@/hooks/useChats";
 import JobInput from "@/components/JobInput";
 import JobList from "@/components/JobList";
+import { Modal, ModalContent, ModalHeader, ModalBody, ModalFooter, Textarea, Button } from "@heroui/react";
+import { Spinner } from "@heroui/spinner";
 import { addToast } from "@heroui/toast";
+import { GlobalConfigContext } from "@/config/GlobalConfig";
+import JobModal from "@/components/JobModal";
 
 interface Job {
   jobID: string;
   title: string;
   description: string;
   price: number;
-  contractPeriod: string;
+  contractPeriod: number;
   isComplete: boolean;
   user: {
     userID: string;
@@ -31,183 +35,142 @@ interface JobFormData {
 }
 
 const Jobs = () => {
+  const { user } = useContext(GlobalConfigContext);
   const {
     jobs,
-    loading,
-    error,
+    loading: jobsLoading,
+    error: jobsError,
     fetchJobs,
     createNewJob,
     updateExistingJob,
     deleteExistingJob,
   } = useJobs();
+  const { sendChatMessage } = useChats();
 
   const [selectedJob, setSelectedJob] = useState<Job | null>(null);
-  const [currentUserID, setCurrentUserID] = useState<string>("");
+  const [isJobModalOpen, setIsJobModalOpen] = useState(false);
+  const [applyModalOpen, setApplyModalOpen] = useState(false);
+  const [applicationMessage, setApplicationMessage] = useState("");
+  const [initialFormData, setInitialFormData] = useState<JobFormData | null>(null);
 
   useEffect(() => {
-    const loadJobs = async () => {
-      try {
-        await fetchJobs();
-      } catch (err) {
-        addToast({
-          title: "Error",
-          description: "Failed to load jobs. Please try again later.",
-          color: "danger",
-          size: "lg",
-        });
-      }
-    };
-
-    loadJobs();
-    
-    // get user ID from localStorage
-    const token = localStorage.getItem("token");
-    if (token) {
-      try {
-        const payload = JSON.parse(atob(token.split(".")[1]));
-        setCurrentUserID(payload.id || "");
-      } catch (err) {
-        console.error("Error parsing token:", err);
-        setCurrentUserID("");
-      }
-    }
+    fetchJobs();
   }, []);
 
-  const handleCreate = async (data: JobFormData) => {
-    try {
-      await createNewJob(data);
-      addToast({
-        title: "Success",
-        description: "Job created successfully",
-        color: "success",
-        size: "lg",
-      });
-    } catch (err: any) {
+  const handleCreateJob = async (data: JobFormData) => {
+    await createNewJob(data);
+    await fetchJobs(); // Refresh the job list
+  };
+
+  const handleUpdateJob = async (data: JobFormData) => {
+    if (!selectedJob) return;
+    await updateExistingJob(selectedJob.jobID, data);
+    setSelectedJob(null);
+    await fetchJobs(); // Refresh the job list
+  };
+
+  const handleApply = (job: Job) => {
+    setSelectedJob(job);
+    setApplyModalOpen(true);
+  };
+
+  const handleSubmitApplication = async () => {
+    if (!selectedJob) return;
+    if (!applicationMessage.trim()) {
       addToast({
         title: "Error",
-        description: err.message || "Failed to create job",
+        description: "Please enter your application message.",
         color: "danger",
         size: "lg",
       });
+      return;
     }
-  };
-
-  const handleUpdate = async (data: JobFormData) => {
     try {
-      if (selectedJob) {
-        await updateExistingJob(selectedJob.jobID, data);
-        setSelectedJob(null);
-        addToast({
-          title: "Success",
-          description: "Job updated successfully",
-          color: "success",
-          size: "lg",
-        });
-      }
-    } catch (err: any) {
-      addToast({
-        title: "Error",
-        description: err.message || "Failed to update job",
-        color: "danger",
-        size: "lg",
+      await sendChatMessage({
+        recipientID: selectedJob.user.userID,
+        text: applicationMessage.trim(),
+        chatType: "job",
       });
-    }
-  };
-
-  const handleDelete = async (jobID: string) => {
-    try {
-      await deleteExistingJob(jobID);
-      addToast({
-        title: "Success",
-        description: "Job deleted successfully",
-        color: "success",
-        size: "lg",
-      });
-    } catch (err: any) {
-      addToast({
-        title: "Error",
-        description: err.message || "Failed to delete job",
-        color: "danger",
-        size: "lg",
-      });
-    }
-  };
-
-  const handleApply = async (jobID: string) => {
-    try {
-      // need to implement this in services + API
-      // await applyToJob(jobID);
       addToast({
         title: "Success",
         description: "Application submitted successfully",
         color: "success",
         size: "lg",
       });
+      setApplyModalOpen(false);
+      setApplicationMessage("");
+      setSelectedJob(null);
     } catch (err: any) {
       addToast({
         title: "Error",
-        description: err.message || "Failed to apply for job",
+        description: err.message || "Failed to submit application",
         color: "danger",
         size: "lg",
       });
     }
   };
 
-  if (loading) {
+  if (jobsLoading) {
     return (
       <DefaultLayout>
-        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '50vh' }}>
+        <div className="flex items-center justify-center">
           <Spinner size="lg" />
         </div>
       </DefaultLayout>
     );
   }
 
-  if (error) {
-    return <div>Error: {error}</div>;
+  if (jobsError) {
+    return (
+      <DefaultLayout>
+        <div>Error: {jobsError}</div>
+      </DefaultLayout>
+    );
   }
 
   return (
     <DefaultLayout>
-      <div>
-        <div>
-          <h1>Jobs Board</h1>
+      <div className="p-4">
+        <div className="flex justify-between items-center mb-6">
+          <h1 className="text-3xl font-bold">Jobs Board</h1>
+          <Button 
+            color="primary"
+            onPress={() => setIsJobModalOpen(true)}
+          >
+            Create New Job
+          </Button>
         </div>
-
-        {selectedJob ? (
-          <>
-            <h2>Edit Job</h2>
-            <JobInput
-              onSubmit={handleUpdate}
-              initialData={{
-                title: selectedJob.title,
-                description: selectedJob.description,
-                price: selectedJob.price,
-                contractPeriod: selectedJob.contractPeriod,
-              }}
-              submitLabel="Update Job"
-            />
-            <Button variant="flat" onPress={() => setSelectedJob(null)}>
-              Cancel Edit
-            </Button>
-          </>
-        ) : (
-          <>
-            <h2>Create New Job</h2>
-            <JobInput onSubmit={handleCreate} />
-          </>
-        )}
 
         <JobList
           jobs={jobs || []}
-          currentUserID={currentUserID}
-          onEdit={setSelectedJob}
-          onDelete={handleDelete}
-          onApply={handleApply}
+          currentUserID={user?.userID || ""}
+          onEdit={(job) => {
+            setSelectedJob(job);
+            setIsJobModalOpen(true);
+            const formData = {
+              title: job.title,
+              description: job.description,
+              price: Number(job.price),
+              contractPeriod: Number(job.contractPeriod),
+            };
+            setInitialFormData(formData);
+          }}
+          onDelete={deleteExistingJob}
+        />
+
+        <JobModal
+          isOpen={isJobModalOpen}
+          onClose={() => {
+            setIsJobModalOpen(false);
+            setSelectedJob(null);
+          }}
+          onSubmit={selectedJob ? handleUpdateJob : handleCreateJob}
+          initialData={selectedJob || undefined}
+          mode={selectedJob ? "edit" : "create"}
         />
       </div>
     </DefaultLayout>
   );
 };
 
-export default Jobs; 
+export default Jobs;
