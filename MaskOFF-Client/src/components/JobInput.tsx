@@ -9,7 +9,7 @@ interface JobFormData {
   title: string;
   description: string;
   price: number;
-  contractPeriod: string;
+  contractPeriod: number;
 }
 
 // props that this component accepts
@@ -27,7 +27,7 @@ const JobInput = ({ onSubmit, initialData, submitLabel = "Create Job" }: JobInpu
       title: "",
       description: "",
       price: 0,
-      contractPeriod: "",
+      contractPeriod: 0,
     }
   );
 
@@ -41,7 +41,7 @@ const JobInput = ({ onSubmit, initialData, submitLabel = "Create Job" }: JobInpu
         title: "",
         description: "",
         price: 0,
-        contractPeriod: "",
+        contractPeriod: 0,
       });
     }
   };
@@ -91,15 +91,13 @@ const JobInput = ({ onSubmit, initialData, submitLabel = "Create Job" }: JobInpu
 
         {/* contract period input */}
         <div>
-          <span>Contract Period</span>
+          <span>Contract Period (Days)</span>
           <Input
             id="contractPeriod"
-            value={formData.contractPeriod}
+            type="number"
+            value={formData.contractPeriod.toString()}
             onChange={(e) =>
-              setFormData({
-                ...formData,
-                contractPeriod: e.target.value,
-              })
+              setFormData({ ...formData, contractPeriod: Number(e.target.value) })
             }
             required
           />

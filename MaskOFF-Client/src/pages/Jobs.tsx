@@ -9,13 +9,14 @@ import { Modal, ModalContent, ModalHeader, ModalBody, ModalFooter, Textarea, But
 import { Spinner } from "@heroui/spinner";
 import { addToast } from "@heroui/toast";
 import { GlobalConfigContext } from "@/config/GlobalConfig";
+import JobModal from "@/components/JobModal";
 
 interface Job {
   jobID: string;
   title: string;
   description: string;
   price: number;
-  contractPeriod: string;
+  contractPeriod: number;
   isComplete: boolean;
   user: {
     userID: string;
@@ -47,14 +48,26 @@ const Jobs = () => {
   const { sendChatMessage } = useChats();
 
   const [selectedJob, setSelectedJob] = useState<Job | null>(null);
+  const [isJobModalOpen, setIsJobModalOpen] = useState(false);
   const [applyModalOpen, setApplyModalOpen] = useState(false);
   const [applicationMessage, setApplicationMessage] = useState("");
+  const [initialFormData, setInitialFormData] = useState<JobFormData | null>(null);
 
   useEffect(() => {
-    (async () => {
-      await fetchJobs();
-    })();
+    fetchJobs();
   }, []);
+
+  const handleCreateJob = async (data: JobFormData) => {
+    await createNewJob(data);
+    await fetchJobs(); // Refresh the job list
+  };
+
+  const handleUpdateJob = async (data: JobFormData) => {
+    if (!selectedJob) return;
+    await updateExistingJob(selectedJob.jobID, data);
+    setSelectedJob(null);
+    await fetchJobs(); // Refresh the job list
+  };
 
   const handleApply = (job: Job) => {
     setSelectedJob(job);
@@ -100,7 +113,7 @@ const Jobs = () => {
   if (jobsLoading) {
     return (
       <DefaultLayout>
-        <div className="flex justify-center items-center min-h-[50vh]">
+        <div className="flex items-center justify-center h-screen">
           <Spinner size="lg" />
         </div>
       </DefaultLayout>
@@ -118,37 +131,43 @@ const Jobs = () => {
   return (
     <DefaultLayout>
       <div className="p-4">
-        <h1 className="text-3xl font-bold mb-4">Jobs Board</h1>
-        {selectedJob ? (
-          <>
-            <h2 className="text-2xl mb-2">Edit Job</h2>
-            <JobInput
-              onSubmit={updateExistingJob}
-              initialData={{
-                title: selectedJob.title,
-                description: selectedJob.description,
-                price: selectedJob.price,
-                contractPeriod: selectedJob.contractPeriod,
-              }}
-              submitLabel="Update Job"
-            />
-            <Button variant="flat" onPress={() => setSelectedJob(null)}>
-              Cancel Edit
-            </Button>
-          </>
-        ) : (
-          <>
-            <h2 className="text-2xl mb-2">Create New Job</h2>
-            <JobInput onSubmit={createNewJob} />
-          </>
-        )}
+        <div className="flex justify-between items-center mb-6">
+          <h1 className="text-3xl font-bold">Jobs Board</h1>
+          <Button 
+            color="primary"
+            onPress={() => setIsJobModalOpen(true)}
+          >
+            Create New Job
+          </Button>
+        </div>
 
         <JobList
           jobs={jobs || []}
           currentUserID={user?.userID || ""}
-          onEdit={setSelectedJob}
+          onEdit={(job) => {
+            setSelectedJob(job);
+            setIsJobModalOpen(true);
+            const formData = {
+              title: job.title,
+              description: job.description,
+              price: Number(job.price),
+              contractPeriod: Number(job.contractPeriod),
+            };
+            setInitialFormData(formData);
+          }}
           onDelete={deleteExistingJob}
           onApply={handleApply}
+        />
+
+        <JobModal
+          isOpen={isJobModalOpen}
+          onClose={() => {
+            setIsJobModalOpen(false);
+            setSelectedJob(null);
+          }}
+          onSubmit={selectedJob ? handleUpdateJob : handleCreateJob}
+          initialData={selectedJob || undefined}
+          mode={selectedJob ? "edit" : "create"}
         />
 
         <Modal isOpen={applyModalOpen} onClose={() => setApplyModalOpen(false)}>
