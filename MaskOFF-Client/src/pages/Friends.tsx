@@ -12,10 +12,16 @@ const FriendPage: React.FC = () => {
   if (!globalContext) {
     throw new Error("FriendPage must be used within a GlobalConfigProvider");
   }
-  const { user, friendRequestsSent, friendRequestsReceived } = globalContext;
+  const { user } = globalContext;
+  const friendRequestsSent = user?.friendRequestsSent;
+  const friendRequestsReceived = user?.friendRequestsReceived;
+  const friends = user?.friends;
   const { sendRequest, acceptRequest, rejectRequest } = useFriends();
   const navigate = useNavigate();
-
+  const [refreshTrigger,setRefreshTrigger] = useState(false);
+  const handleRefresh = ()=>{
+    setRefreshTrigger(!refreshTrigger);
+  }
   const [allUsers, setAllUsers] = useState<Friend[]>([]);
   const [loadingUsers, setLoadingUsers] = useState<boolean>(false);
 
@@ -25,6 +31,8 @@ const FriendPage: React.FC = () => {
       try {
         const res = await listUsers();
         setAllUsers(res.data.users || []);
+        console.log(user);
+        console.log(allUsers)
       } catch (error) {
         console.error("Error fetching users:", error);
       } finally {
@@ -32,27 +40,56 @@ const FriendPage: React.FC = () => {
       }
     };
     fetchUsers();
-  }, []);
+  }, [refreshTrigger]);
 
-  // filter out the logged-in user and any user already in a friend relation / pending request
-  const filteredFriends = allUsers?.filter((friend) => {
-    if (!user) return false;
-    if (friend.userID === user.userID) return false;
-    const alreadySent = friendRequestsSent?.some((fr) => fr.userID === friend.userID);
-    const alreadyReceived = friendRequestsReceived?.some((fr) => fr.userID === friend.userID);
-    const alreadyFriend = user.friends?.some((fr) => fr.userID === friend.userID);
-    return !alreadySent && !alreadyReceived && !alreadyFriend;
-  });
+  
+  if (!user || loadingUsers) {
+    return (
+      <DefaultLayout>
+        <div className="flex items-center justify-center h-full">
+          <p>Loading...</p>
+        </div>
+      </DefaultLayout>
+    );
+  }
 
-  const handleSendRequest = (friendID: string) => {
-    sendRequest(friendID);
+ 
+  const getUserDetails = (userID: string) => {
+    return allUsers.find(u => u.userID === userID) || { userID, username: "", name: "", avatar: "" };
   };
 
-  // updated: navigate to dynamic chat route "/chat/:chatID"
+ 
+  const detailedFriendRequestsReceived = friendRequestsReceived?.map(fr => {
+    const details = getUserDetails(fr.userID);
+    return { ...fr, ...details };
+  }) ?? [];
+
+  const detailedFriendRequestsSent = friendRequestsSent?.map(fr => {
+    const details = getUserDetails(fr.userID);
+    return { ...fr, ...details };
+  }) ?? [];
+
+  const filteredFriends = allUsers?.filter(friend => {
+    if (friend.userID === user.userID) return false;
+    const alreadySent = friendRequestsSent.some(fr => fr.userID === friend.userID);
+    const alreadyReceived = friendRequestsReceived.some(fr => fr.userID === friend.userID);
+    const alreadyFriend = (friends ?? []).some(fr => fr.userID === friend.userID);
+    return !alreadySent && !alreadyReceived && !alreadyFriend;
+  }) ?? [];
+
+  const handleSendRequest = (friendID: string) => {
+    if (friendRequestsReceived.some(fr => fr.userID === friendID)) {
+      acceptRequest(friendID);
+      handleRefresh();
+    } else {
+      sendRequest(friendID);
+      handleRefresh();
+    }
+  };
+
   const handleMessage = async (friendID: string) => {
     try {
       const res = await createChat(friendID);
-      // assuming the response contains chatID in res.data.chatID
       navigate(`/chat/${res.data.chatID}`);
     } catch (error) {
       console.error("Error starting chat:", error);
@@ -63,19 +100,17 @@ const FriendPage: React.FC = () => {
     <DefaultLayout>
       <Tabs aria-label="Friends">
         <Tab key="findUsers" title="Find Users">
-          {loadingUsers ? (
-            <p>Loading users...</p>
-          ) : filteredFriends.length === 0 ? (
+          {filteredFriends.length === 0 ? (
             <p>No new users found.</p>
           ) : (
             <div className="grid grid-cols-4 gap-4">
-              {filteredFriends.map((friend) => (
+              {filteredFriends.map(friend => (
                 <Card key={friend.userID}>
                   <CardBody className="flex items-center justify-between">
                     <User
                       avatarProps={{
-                        src: friend.avatar,
-                        name: friend.name.charAt(0),
+                        src: friend.avatar || undefined,
+                        name: friend.name?.charAt(0) || friend.username?.charAt(0) || "U",
                         showFallback: true,
                       }}
                       description={
@@ -83,7 +118,7 @@ const FriendPage: React.FC = () => {
                           @{friend.username}
                         </Link>
                       }
-                      name={friend.name}
+                      name={friend.name || "Unknown"}
                       className="flex-grow"
                     />
                     <Button onPress={() => handleSendRequest(friend.userID)} isIconOnly color="danger">
@@ -96,17 +131,17 @@ const FriendPage: React.FC = () => {
           )}
         </Tab>
         <Tab key="friendRequestsReceived" title="Friend Requests Received">
-          {friendRequestsReceived?.length === 0 ? (
+          {detailedFriendRequestsReceived.length === 0 ? (
             <p>No friend requests received.</p>
           ) : (
             <div className="grid grid-cols-4 gap-4">
-              {friendRequestsReceived.map((fr) => (
+              {detailedFriendRequestsReceived.map(fr => (
                 <Card key={fr.userID}>
                   <CardBody>
                     <User
                       avatarProps={{
-                        src: fr.avatar,
-                        name: fr.name.charAt(0),
+                        src: fr.avatar || undefined,
+                        name: fr.name?.charAt(0) || fr.username?.charAt(0) || "U",
                         showFallback: true,
                       }}
                       description={
@@ -114,7 +149,7 @@ const FriendPage: React.FC = () => {
                           @{fr.username}
                         </Link>
                       }
-                      name={fr.name}
+                      name={fr.name || "Unknown"}
                     />
                   </CardBody>
                   <CardFooter className="flex justify-around">
@@ -131,17 +166,17 @@ const FriendPage: React.FC = () => {
           )}
         </Tab>
         <Tab key="friendRequestsSent" title="Friend Requests Sent">
-          {friendRequestsSent?.length === 0 ? (
+          {detailedFriendRequestsSent.length === 0 ? (
             <p>No friend requests sent.</p>
           ) : (
             <div className="grid grid-cols-4 gap-4">
-              {friendRequestsSent.map((fr) => (
+              {detailedFriendRequestsSent.map(fr => (
                 <Card key={fr.userID}>
                   <CardBody>
                     <User
                       avatarProps={{
-                        src: fr.avatar,
-                        name: fr.name.charAt(0),
+                        src: fr.avatar || undefined,
+                        name: fr.name?.charAt(0) || fr.username?.charAt(0) || "U",
                         showFallback: true,
                       }}
                       description={
@@ -149,7 +184,7 @@ const FriendPage: React.FC = () => {
                           @{fr.username}
                         </Link>
                       }
-                      name={fr.name}
+                      name={fr.name || "Unknown"}
                     />
                   </CardBody>
                   <CardFooter>
@@ -161,29 +196,29 @@ const FriendPage: React.FC = () => {
           )}
         </Tab>
         <Tab key="friends" title="Friends">
-          {user?.friends?.length === 0 ? (
+          {friends?.length === 0 ? (
             <p>You have no friends yet.</p>
           ) : (
             <div className="grid grid-cols-4 gap-4">
-              {user?.friends?.map((friend) => (
-                <Card key={friend?.userID}>
+              {(friends ?? []).map(friend => (
+                <Card key={friend.userID}>
                   <CardBody>
                     <User
                       avatarProps={{
-                        src: friend?.avatar,
-                        name: friend?.name?.charAt(0),
+                        src: friend.avatar || undefined,
+                        name: friend.name?.charAt(0) || friend.username?.charAt(0) || "U",
                         showFallback: true,
                       }}
                       description={
-                        <Link href={`/profile/${friend?.username}`} size="sm">
+                        <Link href={`/profile/${friend.username}`} size="sm">
                           @{friend.username}
                         </Link>
                       }
-                      name={friend.name}
+                      name={friend.name || "Unknown"}
                     />
                   </CardBody>
                   <CardFooter className="flex justify-around">
-                    <Button onPress={() => handleMessage(friend?.userID)} color="primary">
+                    <Button onPress={() => handleMessage(friend.userID)} color="primary">
                       Message
                     </Button>
                   </CardFooter>

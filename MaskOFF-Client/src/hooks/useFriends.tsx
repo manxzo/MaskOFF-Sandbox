@@ -15,9 +15,6 @@ export const useFriends = () => {
     throw new Error("useFriends must be used within a GlobalConfigProvider");
   }
   const {
-    setFriends,
-    setFriendRequestsSent,
-    setFriendRequestsReceived,
     error,
     setError,
   } = globalContext;
@@ -40,54 +37,14 @@ export const useFriends = () => {
     }
   };
 
-  const fetchFriendRequestsReceived = async () => {
-    setLoading(true);
-    setError(null);
-    try {
-      const res = await getFriendRequestsReceived();
-      setFriendRequestsReceived(res.data.friendRequestsReceived || []);
-      return res.data;
-    } catch (err: any) {
-      const errMsg =
-        err.response?.data?.error ||
-        err.message ||
-        "Fetching friend requests received failed";
-      setError(errMsg);
-      throw err;
-    } finally {
-      setLoading(false);
-    }
-  };
 
-  const fetchFriendRequestsSent = async () => {
-    setLoading(true);
-    setError(null);
-    try {
-      const res = await getFriendRequestsSent();
-      setFriendRequestsSent(res.data.friendRequestsSent || []);
-      return res.data;
-    } catch (err: any) {
-      const errMsg =
-        err.response?.data?.error ||
-        err.message ||
-        "Fetching friend requests sent failed";
-      setError(errMsg);
-      throw err;
-    } finally {
-      setLoading(false);
-    }
-  };
+
 
   const acceptRequest = async (friendID: string) => {
     setLoading(true);
     setError(null);
     try {
       const res = await acceptFriendRequest(friendID);
-      // refresh friends list and friend request lists after accepting
-      const friendsRes = await getFriends();
-      setFriends(friendsRes.data.friends || []);
-      await fetchFriendRequestsReceived();
-      await fetchFriendRequestsSent();
       return res.data;
     } catch (err: any) {
       const errMsg =
@@ -106,9 +63,6 @@ export const useFriends = () => {
     setError(null);
     try {
       const res = await rejectFriendRequest(friendID);
-      // refresh friend request lists after rejection
-      await fetchFriendRequestsReceived();
-      await fetchFriendRequestsSent();
       return res.data;
     } catch (err: any) {
       const errMsg =
@@ -122,32 +76,14 @@ export const useFriends = () => {
     }
   };
 
-  const fetchFriendsList = async () => {
-    setLoading(true);
-    setError(null);
-    try {
-      const res = await getFriends();
-      setFriends(res.data.friends || []);
-      return res.data;
-    } catch (err: any) {
-      const errMsg =
-        err.response?.data?.error || err.message || "Fetching friends list failed";
-      setError(errMsg);
-      throw err;
-    } finally {
-      setLoading(false);
-    }
-  };
+
 
   return {
     loading,
     error,
     sendRequest,
-    fetchFriendRequestsReceived,
-    fetchFriendRequestsSent,
     acceptRequest,
     rejectRequest,
-    fetchFriendsList,
   };
 };
 
