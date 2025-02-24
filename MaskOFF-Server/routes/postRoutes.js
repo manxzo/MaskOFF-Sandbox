@@ -4,7 +4,7 @@ const Post = require("../models/Post");
 const UserProfile = require("../models/UserProfile");
 const { verifyToken } = require("../components/jwtUtils");
 const UserAuth = require("../models/UserAuth");
-
+const { sendToAll } = require("../components/wsUtils");
 // new post
 router.post("/posts", verifyToken, async (req, res) => {
   try {
@@ -47,6 +47,10 @@ router.post("/posts", verifyToken, async (req, res) => {
     });
 
     await newPost.save();
+    sendToAll({
+      type: "UPDATE_DATA",
+      update: "refresh",
+    })
     res
       .status(201)
       .json({ message: "Post created successfully.", post: newPost.toPublic() });
@@ -75,6 +79,7 @@ router.get("/posts", async (req, res) => {
         comments: publicComments,
       };
     });
+
     res.json({ posts: publicPosts });
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -123,6 +128,10 @@ router.put("/posts/:postID", verifyToken, async (req, res) => {
       }
     }
     await post.save();
+    sendToAll({
+      type: "UPDATE_DATA",
+      update: "refresh",
+    })
     res.json({ message: "Post updated", post: post.toPublic() });
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -135,6 +144,10 @@ router.delete("/posts/:postID", verifyToken, async (req, res) => {
     const { postID } = req.params;
     const post = await Post.findByIdAndDelete(postID);
     if (!post) return res.status(404).json({ error: "Post not found." });
+    sendToAll({
+      type: "UPDATE_DATA",
+      update: "refresh",
+    })
     res.json({ message: "Post deleted" });
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -180,6 +193,10 @@ router.post("/posts/:postID/comments", verifyToken, async (req, res) => {
 
     post.comments.push(commentData);
     await post.save();
+    sendToAll({
+      type: "UPDATE_DATA",
+      update: "refresh",
+    })
     res.status(201).json({ message: "Comment added", post: post.toPublic() });
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -209,6 +226,10 @@ router.post("/posts/:postID/upvote", verifyToken, async (req, res) => {
       post.upvotedBy.push(userId);
     }
     await post.save();
+    sendToAll({
+      type: "UPDATE_DATA",
+      update: "refresh",
+    })
     res.json({ message: "Upvote processed", post: post.toPublic() });
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -238,6 +259,10 @@ router.post("/posts/:postID/downvote", verifyToken, async (req, res) => {
       post.downvotedBy.push(userId);
     }
     await post.save();
+    sendToAll({
+      type: "UPDATE_DATA",
+      update: "refresh",
+    })
     res.json({ message: "Downvote processed", post: post.toPublic() });
   } catch (err) {
     res.status(500).json({ error: err.message });

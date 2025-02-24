@@ -1,9 +1,10 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState,useContext } from "react";
 import DefaultLayout from "@/layouts/default";
 import usePosts from "@/hooks/usePosts";
 import useJobs from "@/hooks/useJobs";
 import { Card, CardHeader, CardBody, Divider, Spinner } from "@heroui/react";
 import { title, subtitle } from "@/components/primitives";
+import { GlobalConfigContext } from "@/config/GlobalConfig";
 
 const Explore = () => {
   const {
@@ -18,14 +19,14 @@ const Explore = () => {
     error: jobsError,
     fetchJobs,
   } = useJobs();
+  const {refresh} = useContext(GlobalConfigContext);
 
-  // local state for refresh trigger if need
-  const [refreshTrigger, setRefreshTrigger] = useState(0);
+
 
   useEffect(() => {
     fetchPosts();
     fetchJobs();
-  }, [refreshTrigger, fetchPosts, fetchJobs]);
+  }, [refresh, fetchPosts, fetchJobs]);
 
   return (
     <DefaultLayout>

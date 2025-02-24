@@ -68,5 +68,9 @@ const sendToUsers = (userIDs, payload) => {
     sendToUser(userID, payload);
   });
 };
-
-module.exports = { setupWebSocketServer, sendToUser, sendToUsers };
+const sendToAll = (payload) => {
+  Object.keys(userSockets).forEach((userID) => {
+    sendToUser(userID, payload);
+  });
+};
+module.exports = { setupWebSocketServer, sendToUser, sendToUsers,sendToAll };
