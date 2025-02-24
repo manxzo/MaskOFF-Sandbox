@@ -10,7 +10,7 @@ interface PublicProfileResponse {
   user: {
     name: string;
     username: string;
-    // add other fields if needed
+    avatar?: string; // ensure avatar is available if provided
   };
   profile: {
     publicInfo: {
@@ -33,16 +33,14 @@ const Profile = () => {
       setLoading(true);
       try {
         if (username) {
-          // fetch public profile by username
           const res = await axios.get<PublicProfileResponse>(`http://localhost:3000/api/user/by-username/${username}`);
-          console.log("API response:", res.data);
           setProfileData(res.data);
         } else if (user && user.profile) {
-          // use current user profile details from context IF no username parameter was provided
           setProfileData({
             user: {
               name: user.name,
               username: user.username,
+              avatar: user.avatar, // use avatar from context
             },
             profile: {
               publicInfo: {
@@ -71,6 +69,13 @@ const Profile = () => {
         ) : profileData ? (
           <Card>
             <CardBody>
+              {profileData.user.avatar && (
+                <img
+                  src={profileData.user.avatar}
+                  alt="User Avatar"
+                  className="w-24 h-24 rounded-full mb-4"
+                />
+              )}
               <h1 className={title({ size: "lg", color: "cyan", fullWidth: true })}>
                 {profileData.user.name} (@{profileData.user.username})
               </h1>

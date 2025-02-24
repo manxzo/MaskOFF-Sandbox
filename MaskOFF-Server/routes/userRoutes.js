@@ -219,10 +219,12 @@ router.post("/users/login", async (req, res) => {
 router.get("/user/:userID", verifyToken, async (req, res) => {
   try {
     const user = await UserAuth.findById(req.params.userID);
-    if (!user) return res.status(404).json({ error: "User not found." });
+    if (!user) return res.status(404).json({ error: "user not found." });
     const profile = await UserProfile.findOne({ user: user._id });
-    // updated: using custom instance methods for public profile conversion
-    res.json({ ...user.toJSON(), profile: profile ? profile.toJSON() : {} });
+    let userJson = user.toJSON();
+    // remove extra '/api' if APP_URL already includes it
+    userJson.avatar = `${process.env.APP_URL || "http://localhost:3000"}/avatar/${userJson.userID}`;
+    res.json({ ...userJson, profile: profile ? profile.toJSON() : {} });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -272,11 +274,14 @@ router.post("/upload-avatar", verifyToken, upload.single("avatar"), async (req, 
     res.status(500).json({ error: err.message });
   }
 });
+
 router.get("/avatar/:userID", async (req, res) => {
   try {
     const user = await UserAuth.findById(req.params.userID);
     if (user && user.avatar && user.avatar.data) {
       res.set("Content-Type", user.avatar.contentType);
+      res.set("Access-Control-Allow-Origin", "*");
+      res.set("Cross-Origin-Resource-Policy", "cross-origin");
       return res.send(user.avatar.data);
     } else {
       return res.status(404).json({ error: "No avatar found." });
@@ -285,6 +290,7 @@ router.get("/avatar/:userID", async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 });
+
 // get list of all users (basic public information)
 router.get("/users", async (req, res) => {
   try {
