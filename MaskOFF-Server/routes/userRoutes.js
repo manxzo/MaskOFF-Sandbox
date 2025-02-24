@@ -231,7 +231,7 @@ router.get("/user/:userID", verifyToken, async (req, res) => {
     const profile = await UserProfile.findOne({ user: user._id });
     let userJson = user.toJSON();
     // remove extra '/api' if APP_URL already includes it
-    userJson.avatar = `${process.env.APP_URL || "http://localhost:3000"}/avatar/${userJson.userID}`;
+    userJson.avatar = `${`${process.env.APP_URL}/api` || "http://localhost:3000/api"}/avatar/${userJson.userID}`;
     res.json({ ...userJson, profile: profile ? profile.toJSON() : {} });
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -314,7 +314,7 @@ router.get("/users", async (req, res) => {
     // for each user, build a public object with an avatar URL if avail
     const userList = users.map(user => {
       const avatarUrl = (user.avatar && user.avatar.data)
-        ? `${process.env.APP_URL || "http://localhost:3000/api"}/avatar/${user._id}`
+        ? `${`${process.env.APP_URL}/api` || "http://localhost:3000/api"}/avatar/${user._id}`
         : null;
       return {
         userID: user._id,
@@ -335,8 +335,11 @@ router.get("/user/by-username/:username", async (req, res) => {
     const user = await UserAuth.findOne({ username: req.params.username });
     if (!user) return res.status(404).json({ error: "user not found" });
     const profile = await UserProfile.findOne({ user: user._id });
+    const avatarUrl = (user.avatar && user.avatar.data)
+    ? `${`${process.env.APP_URL}/api` || "http://localhost:3000/api"}/avatar/${user._id}`
+    : null;
     res.json({
-      user:user? user.toPublicProfile() : {},
+      user:user? {...user.toPublicProfile(),avatar:avatarUrl} : {},
       profile: profile ? profile.toPublicProfile() : {}
     });
   } catch (err) {

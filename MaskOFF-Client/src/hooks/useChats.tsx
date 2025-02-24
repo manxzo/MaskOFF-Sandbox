@@ -1,6 +1,5 @@
 import { useState } from "react";
 import {
-  createChat,
   listChats,
   sendMessage,
   getMessages,
@@ -52,8 +51,8 @@ const useChats = () => {
     } catch (err: any) {
       setError(
         err.response?.data?.error ||
-          err.message ||
-          "Error fetching chat messages"
+        err.message ||
+        "Error fetching chat messages"
       );
       throw err;
     } finally {
@@ -62,7 +61,7 @@ const useChats = () => {
   };
 
   const sendChatMessage = async (
-    payload: { chatID?: string; recipientID?: string; text: string; chatType?: string;jobID?:string }
+    payload: { chatID?: string; recipientID?: string; text: string; chatType?: string; jobID?: string }
   ) => {
     setLoading(true);
     setError(null);
@@ -75,8 +74,8 @@ const useChats = () => {
     } catch (err: any) {
       setError(
         err.response?.data?.error ||
-          err.message ||
-          "Error sending message"
+        err.message ||
+        "Error sending message"
       );
       throw err;
     } finally {
@@ -142,8 +141,8 @@ const useChats = () => {
     } catch (err: any) {
       setError(
         err.response?.data?.error ||
-          err.message ||
-          "Error updating chat settings"
+        err.message ||
+        "Error updating chat settings"
       );
       throw err;
     } finally {

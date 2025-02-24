@@ -2,7 +2,6 @@ import { useState } from "react";
 import {
   createPost,
   getPosts,
-  getPost,
   updatePost,
   deletePost,
   addComment,

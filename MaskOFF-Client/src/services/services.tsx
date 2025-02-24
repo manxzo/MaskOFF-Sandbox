@@ -2,12 +2,11 @@ import axios from "axios";
 import { addToast } from "@heroui/toast";
 
 // base URL from env (REACT_APP_API_BASE_URL)
-const API_BASE_URL =
-   "http://localhost:3000/api";
+const VITE_APP_SERVER_URL = `http://${import.meta.env.VITE_APP_SERVER_URL}/api` || "http://localhost:3000/api";
 
 // axios instance
 const apiClient = axios.create({
-  baseURL: API_BASE_URL,
+  baseURL: VITE_APP_SERVER_URL,
 });
 
 // req interceptor to attach JWT token to every request if avail

@@ -122,7 +122,7 @@ export const GlobalConfigProvider = ({ children }: { children: ReactNode }) => {
   useEffect(() => {
     if (!user) return;
 
-    const ws = new WebSocket("ws://localhost:3000");
+    const ws = new WebSocket(`ws://${import.meta.env.VITE_APP_SERVER_URL}`);
 
     ws.onopen = () => {
       console.log("WebSocket connected");
