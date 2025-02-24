@@ -144,35 +144,50 @@ export const getFriends = () => apiClient.get("/friends");
 
 // ===== Chat Endpoints =====
 
-// create new chat
-export const createChat = (recipientID: string) =>
-  apiClient.post("/chat/create", { recipientID });
+// Create chat 
+export const createChat = (
+  recipientID: string,
+  chatType?: string,
+  transaction?: any
+) =>
+  apiClient.post("/chat/create", { recipientID, chatType, transaction });
 
-// list chats
-export const listChats = () => apiClient.get("/chats");
+// List chats 
+export const listChats = (chatType?: string) =>
+  apiClient.get(chatType ? `/chats?chatType=${chatType}` : "/chats");
 
-// send message in chat
-export const sendMessage = (recipientID: string, text: string) =>
-  apiClient.post("/chat/send", { recipientID, text });
+// Send message in chat. 
+export const sendMessage = (payload: {
+  chatID?: string;
+  recipientID?: string;
+  text: string;
+  chatType?: string;
+}) => apiClient.post("/chat/send", payload);
 
-// get messages for 1 chat
+// Get messages for a chat
 export const getMessages = (chatID: string) =>
   apiClient.get(`/chat/messages/${chatID}`);
 
-// delete message from 1 chat
+// Delete a specific message in a chat
 export const deleteMessage = (chatID: string, messageID: string) =>
   apiClient.delete(`/chat/message/${chatID}/${messageID}`);
 
-// edit message in 1 chat
+// Edit a message in a chat
 export const editMessage = (
   chatID: string,
   messageID: string,
   newText: string
 ) => apiClient.put(`/chat/message/${chatID}/${messageID}`, { newText });
 
-// delete entire chat
+// Delete an entire chat
 export const deleteChat = (chatID: string) =>
   apiClient.delete(`/chat/${chatID}`);
+
+// Update job chat settings 
+export const updateJobChatSettings = (
+  chatID: string,
+  updateData: { revealIdentity?: boolean; status?: string; offerPrice?: number }
+) => apiClient.put(`/chat/job/update/${chatID}`, updateData);
 
 // ===== Job Endpoints =====
 export const getJobs = () => apiClient.get("/jobs");

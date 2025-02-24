@@ -1,5 +1,5 @@
 import React, { createContext, useState, useEffect, ReactNode } from "react";
-import { getUser } from "@/services/services";
+import { getUser, listChats } from "@/services/services";
 import { jwtDecode } from "jwt-decode";
 
 export interface PublicProfile {
@@ -74,20 +74,13 @@ export interface Chat {
 export interface GlobalConfigContextType {
   user: User | null;
   chats: Chat[];
-  friends: Friend[];
-  friendRequestsSent: Friend[];
-  friendRequestsReceived: Friend[];
   error: string | null;
   setUser: React.Dispatch<React.SetStateAction<User | null>>;
-  setChats: React.Dispatch<React.SetStateAction<Chat[]>>;
-  setFriends: React.Dispatch<React.SetStateAction<Friend[]>>;
-  setFriendRequestsSent: React.Dispatch<React.SetStateAction<Friend[]>>;
-  setFriendRequestsReceived: React.Dispatch<React.SetStateAction<Friend[]>>;
+  setChats: React.Dispatch<React.SetStateAction<Chat[] | null>>;
   setError: React.Dispatch<React.SetStateAction<string | null>>;
 }
 
 export const GlobalConfigContext = createContext<GlobalConfigContextType | undefined>(undefined);
-
 
 interface JwtPayload {
   id: string;
@@ -98,11 +91,7 @@ interface JwtPayload {
 export const GlobalConfigProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [chats, setChats] = useState<Chat[]>([]);
-  const [friends, setFriends] = useState<Friend[]>([]);
-  const [friendRequestsSent, setFriendRequestsSent] = useState<Friend[]>([]);
-  const [friendRequestsReceived, setFriendRequestsReceived] = useState<Friend[]>([]);
   const [error, setError] = useState<string | null>(null);
-
 
   useEffect(() => {
     const token = localStorage.getItem("token");
@@ -128,18 +117,66 @@ export const GlobalConfigProvider = ({ children }: { children: ReactNode }) => {
     }
   }, []);
 
+  useEffect(() => {
+    if (!user) return;
+
+    const ws = new WebSocket("ws://localhost:3000");
+
+    ws.onopen = () => {
+      console.log("WebSocket connected");
+      // Authenticate the connection with the logged in user ID
+      ws.send(JSON.stringify({ type: "AUTH", userID: user.userID }));
+    };
+
+    ws.onmessage = async (event: MessageEvent) => {
+      try {
+        const data = JSON.parse(event.data);
+        console.log("WebSocket message received:", data);
+        if (data.type === "UPDATE_DATA") {
+          switch (data.update) {
+            case "user": {
+              const res = await getUser(user.userID);
+              setUser(res.data);
+              break;
+            }
+            case "chats": {
+              const res = await listChats();
+              const chatsFromRes: Chat[] = res.data.chats || res.data;
+              const dedupedChats: Chat[] = Array.from(
+                new Map(chatsFromRes.map((chat: any) => [chat.chatID, chat])).values()
+              );
+              setChats(dedupedChats);
+              break;
+            }
+            default:
+              console.warn("Unknown update type:", data.update);
+          }
+        }
+      } catch (error) {
+        console.error("Error handling websocket message:", error);
+      }
+    };
+
+    ws.onerror = (error) => {
+      console.error("WebSocket error:", error);
+    };
+
+    ws.onclose = () => {
+      console.log("WebSocket connection closed");
+    };
+    return () => {
+      if (ws.readyState === WebSocket.OPEN || ws.readyState === WebSocket.CONNECTING) {
+        ws.close();
+      }
+    };
+  }, [user]);
+
   const contextValue: GlobalConfigContextType = {
     user,
     chats,
-    friends,
-    friendRequestsSent,
-    friendRequestsReceived,
     error,
     setUser,
     setChats,
-    setFriends,
-    setFriendRequestsSent,
-    setFriendRequestsReceived,
     setError,
   };
 

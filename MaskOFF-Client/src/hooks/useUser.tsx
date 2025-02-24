@@ -1,4 +1,4 @@
-import { useState, useContext,useEffect } from "react";
+import { useState, useContext } from "react";
 import {
   registerUser,
   verifyEmail,
@@ -18,12 +18,10 @@ export const useUser = () => {
   }
   const {
     setUser,
-    setFriends,
-    setFriendRequestsSent,
-    setFriendRequestsReceived,
     error,
     setError,
     user,
+    setChats,
   } = globalContext;
   const [loading, setLoading] = useState<boolean>(false);
 
@@ -113,9 +111,6 @@ export const useUser = () => {
       localStorage.setItem("token", res.data.token);
       const userData = res.data.user;
       setUser(userData);
-      setFriends(userData.friends || []);
-      setFriendRequestsSent(userData.friendRequestsSent || []);
-      setFriendRequestsReceived(userData.friendRequestsReceived || []);
       return res.data;
     } catch (err: any) {
       const errMsg =
@@ -134,9 +129,6 @@ export const useUser = () => {
       const res = await getUser(userID);
       const userData = res.data;
       setUser(userData);
-      if (userData.friends) setFriends(userData.friends);
-      if (userData.friendRequestsSent) setFriendRequestsSent(userData.friendRequestsSent);
-      if (userData.friendRequestsReceived) setFriendRequestsReceived(userData.friendRequestsReceived);
       return res.data;
     } catch (err: any) {
       const errMsg =
@@ -153,7 +145,6 @@ export const useUser = () => {
     setError(null);
     try {
       const res = await updateProfile(userID, data);
-      // update only profile section of the global user
       const updatedUser = { ...user, profile: res.data.profile };
       setUser(updatedUser);
       return res.data;
@@ -170,9 +161,7 @@ export const useUser = () => {
   const logoutUser = () => {
     logout();
     setUser(null);
-    setFriends([]);
-    setFriendRequestsSent([]);
-    setFriendRequestsReceived([]);
+    setChats([])
   };
 
   return {

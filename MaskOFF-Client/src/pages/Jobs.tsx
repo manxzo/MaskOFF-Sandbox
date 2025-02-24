@@ -1,11 +1,14 @@
-import { useState, useEffect } from "react";
-import { Button } from "@heroui/react";
-import { Spinner } from "@heroui/react";
-import useJobs from "@/hooks/useJobs";
+//@ts-nocheck
+import React, { useEffect, useState, useContext } from "react";
 import DefaultLayout from "@/layouts/default";
+import useJobs from "@/hooks/useJobs";
+import useChats from "@/hooks/useChats";
 import JobInput from "@/components/JobInput";
 import JobList from "@/components/JobList";
+import { Modal, ModalContent, ModalHeader, ModalBody, ModalFooter, Textarea, Button } from "@heroui/react";
+import { Spinner } from "@heroui/spinner";
 import { addToast } from "@heroui/toast";
+import { GlobalConfigContext } from "@/config/GlobalConfig";
 
 interface Job {
   jobID: string;
@@ -31,154 +34,96 @@ interface JobFormData {
 }
 
 const Jobs = () => {
+  const { user } = useContext(GlobalConfigContext);
   const {
     jobs,
-    loading,
-    error,
+    loading: jobsLoading,
+    error: jobsError,
     fetchJobs,
     createNewJob,
     updateExistingJob,
     deleteExistingJob,
   } = useJobs();
+  const { sendChatMessage } = useChats();
 
   const [selectedJob, setSelectedJob] = useState<Job | null>(null);
-  const [currentUserID, setCurrentUserID] = useState<string>("");
+  const [applyModalOpen, setApplyModalOpen] = useState(false);
+  const [applicationMessage, setApplicationMessage] = useState("");
 
   useEffect(() => {
-    const loadJobs = async () => {
-      try {
-        await fetchJobs();
-      } catch (err) {
-        addToast({
-          title: "Error",
-          description: "Failed to load jobs. Please try again later.",
-          color: "danger",
-          size: "lg",
-        });
-      }
-    };
-
-    loadJobs();
-    
-    // get user ID from localStorage
-    const token = localStorage.getItem("token");
-    if (token) {
-      try {
-        const payload = JSON.parse(atob(token.split(".")[1]));
-        setCurrentUserID(payload.id || "");
-      } catch (err) {
-        console.error("Error parsing token:", err);
-        setCurrentUserID("");
-      }
-    }
+    (async () => {
+      await fetchJobs();
+    })();
   }, []);
 
-  const handleCreate = async (data: JobFormData) => {
-    try {
-      await createNewJob(data);
-      addToast({
-        title: "Success",
-        description: "Job created successfully",
-        color: "success",
-        size: "lg",
-      });
-    } catch (err: any) {
+  const handleApply = (job: Job) => {
+    setSelectedJob(job);
+    setApplyModalOpen(true);
+  };
+
+  const handleSubmitApplication = async () => {
+    if (!selectedJob) return;
+    if (!applicationMessage.trim()) {
       addToast({
         title: "Error",
-        description: err.message || "Failed to create job",
+        description: "Please enter your application message.",
         color: "danger",
         size: "lg",
       });
+      return;
     }
-  };
-
-  const handleUpdate = async (data: JobFormData) => {
     try {
-      if (selectedJob) {
-        await updateExistingJob(selectedJob.jobID, data);
-        setSelectedJob(null);
-        addToast({
-          title: "Success",
-          description: "Job updated successfully",
-          color: "success",
-          size: "lg",
-        });
-      }
-    } catch (err: any) {
-      addToast({
-        title: "Error",
-        description: err.message || "Failed to update job",
-        color: "danger",
-        size: "lg",
+      await sendChatMessage({
+        recipientID: selectedJob.user.userID,
+        text: applicationMessage.trim(),
+        chatType: "job",
       });
-    }
-  };
-
-  const handleDelete = async (jobID: string) => {
-    try {
-      await deleteExistingJob(jobID);
-      addToast({
-        title: "Success",
-        description: "Job deleted successfully",
-        color: "success",
-        size: "lg",
-      });
-    } catch (err: any) {
-      addToast({
-        title: "Error",
-        description: err.message || "Failed to delete job",
-        color: "danger",
-        size: "lg",
-      });
-    }
-  };
-
-  const handleApply = async (jobID: string) => {
-    try {
-      // need to implement this in services + API
-      // await applyToJob(jobID);
       addToast({
         title: "Success",
         description: "Application submitted successfully",
         color: "success",
         size: "lg",
       });
+      setApplyModalOpen(false);
+      setApplicationMessage("");
+      setSelectedJob(null);
     } catch (err: any) {
       addToast({
         title: "Error",
-        description: err.message || "Failed to apply for job",
+        description: err.message || "Failed to submit application",
         color: "danger",
         size: "lg",
       });
     }
   };
 
-  if (loading) {
+  if (jobsLoading) {
     return (
       <DefaultLayout>
-        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '50vh' }}>
+        <div className="flex justify-center items-center min-h-[50vh]">
           <Spinner size="lg" />
         </div>
       </DefaultLayout>
     );
   }
 
-  if (error) {
-    return <div>Error: {error}</div>;
+  if (jobsError) {
+    return (
+      <DefaultLayout>
+        <div>Error: {jobsError}</div>
+      </DefaultLayout>
+    );
   }
 
   return (
     <DefaultLayout>
-      <div>
-        <div>
-          <h1>Jobs Board</h1>
-        </div>
-
+      <div className="p-4">
+        <h1 className="text-3xl font-bold mb-4">Jobs Board</h1>
         {selectedJob ? (
           <>
-            <h2>Edit Job</h2>
+            <h2 className="text-2xl mb-2">Edit Job</h2>
             <JobInput
-              onSubmit={handleUpdate}
+              onSubmit={updateExistingJob}
               initialData={{
                 title: selectedJob.title,
                 description: selectedJob.description,
@@ -193,21 +138,43 @@ const Jobs = () => {
           </>
         ) : (
           <>
-            <h2>Create New Job</h2>
-            <JobInput onSubmit={handleCreate} />
+            <h2 className="text-2xl mb-2">Create New Job</h2>
+            <JobInput onSubmit={createNewJob} />
           </>
         )}
 
         <JobList
           jobs={jobs || []}
-          currentUserID={currentUserID}
+          currentUserID={user?.userID || ""}
           onEdit={setSelectedJob}
-          onDelete={handleDelete}
+          onDelete={deleteExistingJob}
           onApply={handleApply}
         />
+
+        <Modal isOpen={applyModalOpen} onClose={() => setApplyModalOpen(false)}>
+          <ModalContent>
+            <ModalHeader>Apply for Job</ModalHeader>
+            <ModalBody>
+              <Textarea
+                label="Why are you interested?"
+                placeholder="Enter your application message..."
+                value={applicationMessage}
+                onChange={(e) => setApplicationMessage(e.target.value)}
+              />
+            </ModalBody>
+            <ModalFooter>
+              <Button variant="flat" color="danger" onPress={() => setApplyModalOpen(false)}>
+                Cancel
+              </Button>
+              <Button color="primary" onPress={handleSubmitApplication}>
+                Submit Application
+              </Button>
+            </ModalFooter>
+          </ModalContent>
+        </Modal>
       </div>
     </DefaultLayout>
   );
 };
 
-export default Jobs; 
+export default Jobs;
