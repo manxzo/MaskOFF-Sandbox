@@ -9,6 +9,7 @@ import Dashboard from "./pages/Dashboard";
 import Profile from "./pages/Profile";
 import Settings from "./pages/Settings";
 import Chat from "./pages/Chat";
+import Explore from "./pages/Explore";
 
 
 
@@ -23,6 +24,7 @@ const App = () => {
       <Route path="/reset-password" element={<ResetPasswordForm />} />
       <Route path="/friends" element={<FriendsPage />} />
       <Route path="/posts" element={<Posts />} />
+      <Route path="/explore" element={<Explore />} />
       <Route path="/chat/:chatID?" element={<Chat />} />
       <Route path="/jobs" element={<Jobs />} />
       <Route path="/profile/:username?" element={<Profile />} />
