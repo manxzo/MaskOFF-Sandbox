@@ -1,5 +1,7 @@
-import { Button } from "@heroui/react";
-import { Card, CardHeader, CardBody, CardFooter } from "@heroui/react";
+import { useState } from "react";
+import { Button, Card, CardHeader, CardBody, CardFooter, Modal, ModalContent, ModalHeader, ModalBody, ModalFooter, Textarea } from "@heroui/react";
+import { getJobApplications, updateApplicationStatus, applyToJob } from "@/services/services";
+import { addToast } from "@heroui/toast";
 
 // what a job looks like in our app
 interface Job {
@@ -29,7 +31,26 @@ interface JobListProps {
   onApply: (jobID: string) => void;
 }
 
+interface Application {
+  applicationID: string;
+  applicant: {
+    userID: string;
+    username: string;
+    name: string;
+  };
+  status: "pending" | "accepted" | "rejected";
+  message?: string;
+  createdAt: string;
+}
+
 const JobList = ({ jobs, currentUserID, onEdit, onDelete, onApply }: JobListProps) => {
+  const [expandedJob, setExpandedJob] = useState<string | null>(null);
+  const [applications, setApplications] = useState<Application[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [applyModalOpen, setApplyModalOpen] = useState(false);
+  const [selectedJobId, setSelectedJobId] = useState<string | null>(null);
+  const [applicationMessage, setApplicationMessage] = useState("");
+
   // check if current user created this job
   const isJobAuthor = (job: Job) => {
     // added null checks
@@ -53,41 +74,141 @@ const JobList = ({ jobs, currentUserID, onEdit, onDelete, onApply }: JobListProp
     }
   };
 
+  const handleViewApplications = async (jobID: string) => {
+    try {
+      setLoading(true);
+      const res = await getJobApplications(jobID);
+      setApplications(res.data.applications);
+      setExpandedJob(expandedJob === jobID ? null : jobID);
+    } catch (err) {
+      addToast({
+        title: "Error",
+        description: "Failed to load applications",
+        color: "danger",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleUpdateStatus = async (jobID: string, applicationID: string, status: 'accepted' | 'rejected') => {
+    try {
+      const res = await updateApplicationStatus(jobID, applicationID, status);
+      setApplications(apps => 
+        apps.map(app => 
+          app.applicationID === applicationID 
+            ? res.data.application 
+            : app
+        )
+      );
+      addToast({
+        title: "Success",
+        description: `Application ${status} successfully`,
+        color: "success",
+      });
+    } catch (err) {
+      addToast({
+        title: "Error",
+        description: "Failed to update application status",
+        color: "danger",
+      });
+    }
+  };
+
+  const handleApplyClick = (jobID: string) => {
+    setSelectedJobId(jobID);
+    setApplyModalOpen(true);
+  };
+
+  const handleSubmitApplication = async () => {
+    if (!selectedJobId) return;
+    
+    try {
+      await applyToJob(selectedJobId, applicationMessage);
+      addToast({
+        title: "Success",
+        description: "Application submitted successfully",
+        color: "success",
+      });
+      setApplyModalOpen(false);
+      setApplicationMessage("");
+      setSelectedJobId(null);
+    } catch (err) {
+      // Error toast is handled by the interceptor
+    }
+  };
+
   return (
     <div>
       {/* loop through all jobs and show them as cards */}
       {jobs?.map((job) => (
-        <Card key={job.jobID}>
+        <Card key={job.jobID} className="mb-4">
           <CardHeader>
-            <h2>Job Title: {job.title || 'Untitled'}</h2>
-            <div>
-              Posted by: {job.user?.username || 'Unknown User'}
-            </div>
+            <h3>{job.title}</h3>
+            <p>Posted by: {job.user.username}</p>
           </CardHeader>
-
-          {/* job details section */}
           <CardBody>
-            <h3>Job Description: {job.description || 'No description available'}</h3>
-            <p>Contract Period (Days): {job.contractPeriod || 'Not specified'}</p>
-            <p>Job Price: ${job.price || 0}</p>
-            <p>Last Updated: {formatDate(job.updatedAt)}</p>
+            <p>{job.description}</p>
+            <p>Price: ${job.price}</p>
+            <p>Contract Period: {job.contractPeriod} days</p>
           </CardBody>
-
-          {/* action buttons - show different ones based on ownership */}
           <CardFooter>
             {isJobAuthor(job) ? (
-              <>
-                <Button variant="flat" onPress={() => onEdit(job)}>
-                  Edit
-                </Button>
-                <Button variant="ghost" onPress={() => onDelete(job.jobID)}>
-                  Delete
-                </Button>
-              </>
+              <div className="flex flex-col w-full gap-2">
+                <div className="flex gap-2">
+                  <Button variant="flat" onPress={() => onEdit(job)}>
+                    Edit
+                  </Button>
+                  <Button variant="ghost" onPress={() => onDelete(job.jobID)}>
+                    Delete
+                  </Button>
+                  <Button 
+                    variant="flat" 
+                    onPress={() => handleViewApplications(job.jobID)}
+                  >
+                    {expandedJob === job.jobID ? 'Hide Applications' : 'View Applications'}
+                  </Button>
+                </div>
+                
+                {expandedJob === job.jobID && (
+                  <div className="mt-4">
+                    <h4>Applications</h4>
+                    {applications.length === 0 ? (
+                      <p>No applications yet</p>
+                    ) : (
+                      applications.map(app => (
+                        <div key={app.applicationID} className="border p-4 rounded mb-2">
+                          <p>From: {app.applicant.name} (@{app.applicant.username})</p>
+                          {app.message && <p>Message: {app.message}</p>}
+                          <p>Status: {app.status}</p>
+                          {app.status === 'pending' && (
+                            <div className="flex gap-2 mt-2">
+                              <Button
+                                size="sm"
+                                color="success"
+                                onPress={() => handleUpdateStatus(job.jobID, app.applicationID, 'accepted')}
+                              >
+                                Accept
+                              </Button>
+                              <Button
+                                size="sm"
+                                color="danger"
+                                onPress={() => handleUpdateStatus(job.jobID, app.applicationID, 'rejected')}
+                              >
+                                Reject
+                              </Button>
+                            </div>
+                          )}
+                        </div>
+                      ))
+                    )}
+                  </div>
+                )}
+              </div>
             ) : (
               <Button 
                 variant="solid" 
-                onPress={() => onApply(job.jobID)}
+                onPress={() => handleApplyClick(job.jobID)}
                 disabled={job.isComplete}
               >
                 {job.isComplete ? "Job Completed" : "Apply Now"}
@@ -96,6 +217,28 @@ const JobList = ({ jobs, currentUserID, onEdit, onDelete, onApply }: JobListProp
           </CardFooter>
         </Card>
       ))}
+
+      <Modal isOpen={applyModalOpen} onClose={() => setApplyModalOpen(false)}>
+        <ModalContent>
+          <ModalHeader>Apply for Job</ModalHeader>
+          <ModalBody>
+            <Textarea
+              label="Application Message"
+              placeholder="Tell us why you're interested in this job..."
+              value={applicationMessage}
+              onChange={(e) => setApplicationMessage(e.target.value)}
+            />
+          </ModalBody>
+          <ModalFooter>
+            <Button color="danger" variant="flat" onPress={() => setApplyModalOpen(false)}>
+              Cancel
+            </Button>
+            <Button color="primary" onPress={handleSubmitApplication}>
+              Submit Application
+            </Button>
+          </ModalFooter>
+        </ModalContent>
+      </Modal>
     </div>
   );
 };

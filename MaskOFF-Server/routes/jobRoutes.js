@@ -3,6 +3,7 @@ const router = express.Router();
 const Job = require("../models/Job");
 const UserProfile = require("../models/UserProfile");
 const { verifyToken } = require("../components/jwtUtils");
+const JobApplication = require("../models/JobApplication");
 
 // create new job
 router.post("/jobs", verifyToken, async (req, res) => {
@@ -177,5 +178,122 @@ router.get("/users/:userID/jobs", async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 });
+
+// Submit application
+router.post("/jobs/:jobID/apply", verifyToken, async (req, res) => {
+  try {
+    const { jobID } = req.params;
+    const { message } = req.body;
+
+    // Check if job exists
+    const job = await Job.findById(jobID);
+    if (!job) {
+      return res.status(404).json({ error: "Job not found" });
+    }
+
+    // Check if user already applied
+    const existingApplication = await JobApplication.findOne({
+      job: jobID,
+      applicant: req.user.id,
+    });
+    if (existingApplication) {
+      return res.status(400).json({ error: "Already applied to this job" });
+    }
+
+    const application = new JobApplication({
+      job: jobID,
+      applicant: req.user.id,
+      message,
+    });
+
+    await application.save();
+
+    res.status(201).json({
+      message: "Application submitted successfully",
+      application: application.toJSON(),
+    });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Get applications for a job (job author only)
+router.get("/jobs/:jobID/applications", verifyToken, async (req, res) => {
+  try {
+    const { jobID } = req.params;
+
+    // Check if job exists and user is author
+    const job = await Job.findById(jobID);
+    if (!job) {
+      return res.status(404).json({ error: "Job not found" });
+    }
+    if (job.user.toString() !== req.user.id) {
+      return res.status(403).json({ error: "Not authorized" });
+    }
+
+    const applications = await JobApplication.find({ job: jobID })
+      .populate({
+        path: "applicant",
+        select: "username name _id", // Include _id for userID
+      })
+      .sort("-createdAt");
+
+    // Transform the populated data to match the expected format
+    const formattedApplications = applications.map((app) => ({
+      applicationID: app._id,
+      status: app.status,
+      message: app.message,
+      createdAt: app.createdAt,
+      applicant: {
+        userID: app.applicant._id,
+        username: app.applicant.username,
+        name: app.applicant.name,
+      },
+    }));
+
+    res.json({ applications: formattedApplications });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Update application status (job author only)
+router.put(
+  "/jobs/:jobID/applications/:applicationID",
+  verifyToken,
+  async (req, res) => {
+    try {
+      const { jobID, applicationID } = req.params;
+      const { status } = req.body;
+
+      if (!["accepted", "rejected"].includes(status)) {
+        return res.status(400).json({ error: "Invalid status" });
+      }
+
+      // Check if job exists and user is author
+      const job = await Job.findById(jobID);
+      if (!job) {
+        return res.status(404).json({ error: "Job not found" });
+      }
+      if (job.user.toString() !== req.user.id) {
+        return res.status(403).json({ error: "Not authorized" });
+      }
+
+      const application = await JobApplication.findByIdAndUpdate(
+        applicationID,
+        { status },
+        { new: true }
+      ).populate("applicant", "username name");
+
+      if (!application) {
+        return res.status(404).json({ error: "Application not found" });
+      }
+
+      res.json({ application });
+    } catch (err) {
+      res.status(500).json({ error: err.message });
+    }
+  }
+);
 
 module.exports = router;

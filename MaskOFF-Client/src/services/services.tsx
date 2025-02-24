@@ -181,6 +181,16 @@ export const createJob = (data: any) => apiClient.post("/jobs", data);
 export const updateJob = (jobID: string, data: any) => apiClient.put(`/jobs/${jobID}`, data);
 export const deleteJob = (jobID: string) => apiClient.delete(`/jobs/${jobID}`);
 
+// ===== Apply to Job Endpoints =====
+export const applyToJob = (jobID: string, message?: string) => 
+  apiClient.post(`/jobs/${jobID}/apply`, { message });
+
+export const getJobApplications = (jobID: string) =>
+  apiClient.get(`/jobs/${jobID}/applications`);
+
+export const updateApplicationStatus = (jobID: string, applicationID: string, status: 'accepted' | 'rejected') =>
+  apiClient.put(`/jobs/${jobID}/applications/${applicationID}`, { status });
+
 // export all services as default for easier import
 export default {
   registerUser,
