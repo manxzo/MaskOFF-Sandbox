@@ -1,4 +1,3 @@
-// src/hooks/useUser.tsx
 import { useState, useContext,useEffect } from "react";
 import {
   registerUser,
@@ -41,7 +40,7 @@ export const useUser = () => {
     setError(null);
     try {
       const res = await registerUser(data);
-      // Registration doesn't auto-login; you can decide to update state if needed.
+      // registration doesnt auto-login; ownself decide to update state if need
       return res.data;
     } catch (err: any) {
       const errMsg =
@@ -154,7 +153,7 @@ export const useUser = () => {
     setError(null);
     try {
       const res = await updateProfile(userID, data);
-      // Update only the profile section of the global user
+      // update only profile section of the global user
       const updatedUser = { ...user, profile: res.data.profile };
       setUser(updatedUser);
       return res.data;

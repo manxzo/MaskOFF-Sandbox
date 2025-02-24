@@ -34,7 +34,7 @@ const FriendPage: React.FC = () => {
     fetchUsers();
   }, []);
 
-  // Filter out the logged-in user and any user already in a friend relationship or pending request.
+  // filter out the logged-in user and any user already in a friend relation / pending request
   const filteredFriends = allUsers?.filter((friend) => {
     if (!user) return false;
     if (friend.userID === user.userID) return false;
@@ -48,11 +48,11 @@ const FriendPage: React.FC = () => {
     sendRequest(friendID);
   };
 
-  // Updated: navigate to the dynamic chat route "/chat/:chatID"
+  // updated: navigate to dynamic chat route "/chat/:chatID"
   const handleMessage = async (friendID: string) => {
     try {
       const res = await createChat(friendID);
-      // Assuming the response contains chatID in res.data.chatID
+      // assuming the response contains chatID in res.data.chatID
       navigate(`/chat/${res.data.chatID}`);
     } catch (error) {
       console.error("Error starting chat:", error);

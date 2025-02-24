@@ -1,4 +1,3 @@
-// src/pages/Home.tsx
 import DefaultLayout from "@/layouts/default";
 import { subtitle, title } from "@/components/primitives";
 

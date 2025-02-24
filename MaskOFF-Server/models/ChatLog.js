@@ -1,13 +1,12 @@
-// models/ChatLog.js
 const mongoose = require('mongoose');
 const crypto = require('crypto');
-require('dotenv').config(); // Ensure .env is loaded
+require('dotenv').config(); // make sure .env is loaded
 
-// Derive a 32-byte AES key from the secret
+// derive a 32-byte AES key from the secret
 const AES_SECRET_KEY = process.env.AES_SECRET_KEY;
 const getAESKey = () => crypto.createHash('sha256').update(String(AES_SECRET_KEY)).digest();
 
-// Encryption function for chat messages
+// encryption function for chat messages
 const encryptMessage = (text) => {
   const iv = crypto.randomBytes(16);
   const key = getAESKey();
@@ -17,7 +16,7 @@ const encryptMessage = (text) => {
   return { iv: iv.toString('hex'), encryptedData: encrypted };
 };
 
-// Decryption function for chat messages
+// decryption function for chat messages
 const decryptMessage = (encryptedText, iv) => {
   const key = getAESKey();
   const decipher = crypto.createDecipheriv('aes-256-cbc', key, Buffer.from(iv, 'hex'));
@@ -46,20 +45,20 @@ const chatLogSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-// Add a new encrypted message
+// add a new encrypted message
 chatLogSchema.methods.addMessage = async function(sender, recipient, text) {
   const { iv, encryptedData } = encryptMessage(text);
   this.messages.push({ sender, recipient, encryptedMessage: encryptedData, iv });
   await this.save();
 };
 
-// Delete a message by its ID
+// delete message by its ID
 chatLogSchema.methods.deleteMessage = async function(messageId) {
   this.messages = this.messages.filter(msg => msg._id.toString() !== messageId.toString());
   await this.save();
 };
 
-// Edit a message by its ID (re-encrypt new text)
+// edit message by its ID (re-encrypt new text)
 chatLogSchema.methods.editMessage = async function(messageId, newText) {
   const message = this.messages.id(messageId);
   if (message) {
@@ -73,10 +72,10 @@ chatLogSchema.methods.editMessage = async function(messageId, newText) {
   }
 };
 
-// Get all messages decrypted
+// get all messages decrypted
 chatLogSchema.methods.getDecryptedMessages = function() {
   return this.messages.map(msg => ({
-    msgID: msg._id.toHexString(),  // Custom label
+    msgID: msg._id.toHexString(),  // custom label
     sender: msg.sender,
     recipient: msg.recipient,
     message: decryptMessage(msg.encryptedMessage, msg.iv),
@@ -84,7 +83,7 @@ chatLogSchema.methods.getDecryptedMessages = function() {
   }));
 };
 
-// Transform _id to chatID
+// transform _id to chatID
 chatLogSchema.set("toJSON", {
   virtuals: true,
   transform: (doc, ret) => {

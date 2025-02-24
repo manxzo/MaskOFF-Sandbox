@@ -1,4 +1,3 @@
-// settings.tsx
 import { useState, useContext } from "react";
 import { GlobalConfigContext } from "@/config/GlobalConfig";
 import DefaultLayout from "@/layouts/default";

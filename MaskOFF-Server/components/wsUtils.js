@@ -1,18 +1,17 @@
-// components/wsUtils.js
 const WebSocket = require("ws");
 
 let wss = null;
-// Mapping of userID to their connected WebSocket instance
-// (In a production system, you might want to support multiple sockets per user)
+// mapping userID to their connected WS instance
+// (in a production system & future, might want to support multiple sockets per user)
 const userSockets = {};
 
 /**
- * Sets up the WebSocket server by listening for new connections.
- * When a client connects, it expects an initial JSON message of the form:
+ * sets up the WS server by listening for new connections
+ * when client connects, it expects a initial JSON message of the form:
  *   { type: "AUTH", userID: "..." }
- * This maps the userID to the WebSocket for sending targeted notifications.
+ * this maps the userID to the WS for sending targeted notifications
  *
- * @param {WebSocket.Server} wsServer - The WebSocket server instance.
+ * @param {WebSocket.Server} wsServer - WS server instance
  */
 const setupWebSocketServer = (wsServer) => {
   wss = wsServer;
@@ -23,7 +22,7 @@ const setupWebSocketServer = (wsServer) => {
       try {
         const data = JSON.parse(message);
         if (data.type === "AUTH" && data.userID) {
-          // Map the authenticated userID to this WebSocket connection.
+          // map the authenticated userID to this WS connection
           userSockets[data.userID] = ws;
           console.log(`User ${data.userID} authenticated on WebSocket`);
         }
@@ -33,7 +32,7 @@ const setupWebSocketServer = (wsServer) => {
     });
 
     ws.on("close", () => {
-      // Remove this socket from our mapping.
+      // remove this socket from our mapping
       for (const userID in userSockets) {
         if (userSockets[userID] === ws) {
           delete userSockets[userID];
@@ -46,10 +45,10 @@ const setupWebSocketServer = (wsServer) => {
 };
 
 /**
- * Sends a JSON payload to the connected client identified by userID.
+ * sends JSON payload to connected client identified by userID
  *
- * @param {String} userID - The user's unique identifier.
- * @param {Object} payload - The JSON payload to send.
+ * @param {String} userID - user's unique identifier.
+ * @param {Object} payload - JSON payload to send
  */
 const sendToUser = (userID, payload) => {
   const socket = userSockets[userID];
@@ -59,10 +58,10 @@ const sendToUser = (userID, payload) => {
 };
 
 /**
- * Sends a JSON payload to multiple userIDs.
+ * sends JSON payload to multiple userIDs
  *
- * @param {Array<String>} userIDs - Array of user IDs.
- * @param {Object} payload - The JSON payload to send.
+ * @param {Array<String>} userIDs - array of user IDs
+ * @param {Object} payload - JSON payload to send
  */
 const sendToUsers = (userIDs, payload) => {
   userIDs.forEach((userID) => {

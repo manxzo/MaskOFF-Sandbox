@@ -36,11 +36,11 @@ const useChats = () => {
     setLoading(true);
     setError(null);
     try {
-      // Find chat in state; if not, you might refetch all chats.
+      // find chat in state; if not, you might refetch all chats
       const chat = chats.find((c) => c.chatID === chatID);
       if (chat) {
         setSelectedChat(chat);
-        // Fetch messages for the selected chat.
+        // fetch messages for the selected chat
         const res = await getMessages(chatID);
         setMessages(res.data.messages || res.data);
         return chat;
@@ -58,7 +58,7 @@ const useChats = () => {
     setError(null);
     try {
       const res = await sendMessage(chatID, text);
-      // Refresh messages after sending.
+      // refresh messages after sending
       const updatedRes = await getMessages(chatID);
       setMessages(updatedRes.data.messages || updatedRes.data);
       return res.data;

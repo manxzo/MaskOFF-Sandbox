@@ -1,11 +1,10 @@
-// models/UserAuth.js
 const mongoose = require("mongoose");
 const bcrypt = require("bcrypt");
 const crypto = require("crypto");
 
 const SALT_ROUNDS = 10;
 
-// Subdocument schema for storing friend info (userID and username)
+// subdocument schema for storing friend info (userID + username)
 const friendSubSchema = new mongoose.Schema(
   {
     userID: {
@@ -20,10 +19,9 @@ const friendSubSchema = new mongoose.Schema(
 
 const UserAuthSchema = new mongoose.Schema(
   {
-    // Single name field
+    // single name field
     name: { type: String, required: true, trim: true },
 
-    // Date of birth
     dob: { type: Date, required: true },
 
     email: { type: String, required: true, unique: true, trim: true },
@@ -35,13 +33,13 @@ const UserAuthSchema = new mongoose.Schema(
       minlength: 8,
     },
 
-    // Email & password reset
+    // email & pw reset
     emailVerified: { type: Boolean, default: false },
     verificationToken: { type: String },
     resetPasswordToken: { type: String },
     resetPasswordExpires: { type: Date },
 
-    // Friend relationships (optional)
+    // friend relationships (optional)
     friendRequestsSent: { type: [friendSubSchema], default: [] },
     friendRequestsReceived: { type: [friendSubSchema], default: [] },
     friends: { type: [friendSubSchema], default: [] },
@@ -53,7 +51,7 @@ const UserAuthSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-// Hash password if modified
+// hash password if modified
 UserAuthSchema.pre("save", async function (next) {
   if (this.isModified("password")) {
     this.password = await bcrypt.hash(this.password, SALT_ROUNDS);
@@ -61,19 +59,19 @@ UserAuthSchema.pre("save", async function (next) {
   next();
 });
 
-// Compare provided password with stored hash
+// compare provided password with stored hash
 UserAuthSchema.methods.isCorrectPassword = async function (password) {
   return bcrypt.compare(password, this.password);
 };
 
-// Generate a verification token for email verification
+// generate verification token for email verification
 UserAuthSchema.methods.generateVerificationToken = function () {
   const token = crypto.randomBytes(20).toString("hex");
   this.verificationToken = token;
   return token;
 };
 
-// Generate a reset password token (with expiration)
+// generate reset password token (with expiration)
 UserAuthSchema.methods.generateResetPasswordToken = function () {
   const token = crypto.randomBytes(20).toString("hex");
   this.resetPasswordToken = token;
@@ -81,7 +79,7 @@ UserAuthSchema.methods.generateResetPasswordToken = function () {
   return token;
 };
 
-// Virtual: Expose a friendly userID in JSON
+// virtual: expose friendly userID in JSON
 UserAuthSchema.set("toJSON", {
   virtuals: true,
   transform: (doc, ret) => {

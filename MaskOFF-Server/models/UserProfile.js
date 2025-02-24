@@ -9,14 +9,14 @@ const UserProfileSchema = new mongoose.Schema(
       required: true,
     },
     privacy: { type: Boolean, default: false },
-    // Optional public info
+    // optional public info
     publicInfo: {
       bio: { type: String, default: "" },
       skills: { type: [String], default: [] },
       achievements: { type: [String], default: [] },
       portfolio: { type: String, default: "" },
     },
-    // Anonymous info (MaskON mode)
+    // anonymous info (MaskON mode)
     anonymousInfo: {
       anonymousIdentity: { type: String, unique: true, required: true },
       details: { type: String, default: "" },

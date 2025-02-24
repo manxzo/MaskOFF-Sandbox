@@ -95,7 +95,7 @@ const Dashboard = () => {
                 >
                     {isAnonymous ? "MaskON" : "MaskOFF"}
                 </Switch>
-                {/* New Post Form */}
+                {/* new post form */}
                 <Card className="mb-6">
                     <CardBody>
                         <form onSubmit={handlePostSubmit} className="space-y-3">
@@ -121,7 +121,7 @@ const Dashboard = () => {
 
                 {error && <div className="text-red-500 mb-4">{error}</div>}
 
-                {/* Posts List */}
+                {/* posts list */}
                 <div className="space-y-4">
                     {loading && posts.length === 0 ? (
                         <p>Loading posts...</p>

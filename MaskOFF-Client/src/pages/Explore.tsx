@@ -19,7 +19,7 @@ const Explore = () => {
     fetchJobs,
   } = useJobs();
 
-  // Local state for refresh trigger if needed
+  // local state for refresh trigger if need
   const [refreshTrigger, setRefreshTrigger] = useState(0);
 
   useEffect(() => {

@@ -5,7 +5,7 @@ const UserProfile = require("../models/UserProfile");
 const { verifyToken } = require("../components/jwtUtils");
 const UserAuth = require("../models/UserAuth");
 
-// Create a new post
+// new post
 router.post("/posts", verifyToken, async (req, res) => {
   try {
     const { content, tags, isAnonymous } = req.body;
@@ -13,7 +13,7 @@ router.post("/posts", verifyToken, async (req, res) => {
       return res.status(400).json({ error: "Content is required." });
     }
 
-    // Fetch both the user's auth info and profile concurrently.
+    // fetch both the user auth info and profile concurrently
     const [user, profile] = await Promise.all([
       UserAuth.findById(req.user.id),
       UserProfile.findOne({ user: req.user.id }),
@@ -26,14 +26,14 @@ router.post("/posts", verifyToken, async (req, res) => {
     let author;
     let anonymousInfo = null;
     if (isAnonymous) {
-      // Use the anonymous identity and details from the profile.
+      // use anonymous identity and details from profile
       author = profile.anonymousInfo.anonymousIdentity;
       anonymousInfo = {
         anonymousIdentity: profile.anonymousInfo.anonymousIdentity,
         details: profile.anonymousInfo.details,
       };
     } else {
-      // Use the user's actual username.
+      // use the user's real username
       author = user.username;
     }
 
@@ -55,19 +55,19 @@ router.post("/posts", verifyToken, async (req, res) => {
   }
 });
 
-// Retrieve all posts with proper profile info based on anonymity
+// get all posts with proper profile info based on anonymity
 router.get("/posts", async (req, res) => {
   try {
-    // Retrieve all posts and populate the "user" field with username.
+    // get all posts and populate "user" field with username
     const posts = await Post.find().populate("user", "username");
 
-    // Convert each post (and its comments) using the custom toPublic method.
+    // convert each post (and its comments) using custom toPublic method
     const publicPosts = posts.map((post) => {
-      // Map each comment using its toPublic method (or fallback to toJSON).
+      // map each comment using its toPublic method (or fallback to toJSON).
       const publicComments = post.comments.map((comment) =>
         typeof comment.toPublic === "function" ? comment.toPublic() : comment.toObject()
       );
-      // Convert the post to its public version.
+      // convert the post to its public version
       const publicPost =
         typeof post.toPublic === "function" ? post.toPublic() : post.toObject();
       return {
@@ -81,7 +81,7 @@ router.get("/posts", async (req, res) => {
   }
 });
 
-// Get a single post by postID with proper profile info
+// get 1 post by postID with proper profile info
 router.get("/posts/:postID", async (req, res) => {
   try {
     const post = await Post.findById(req.params.postID).populate("user", "username");
@@ -92,14 +92,14 @@ router.get("/posts/:postID", async (req, res) => {
   }
 });
 
-// Update a post
+// update post
 router.put("/posts/:postID", verifyToken, async (req, res) => {
   try {
     const { postID } = req.params;
     const { content, tags, isAnonymous } = req.body;
     const post = await Post.findById(postID);
     if (!post) return res.status(404).json({ error: "Post not found." });
-    // Optionally: check if req.user.id matches post.user.
+    // optionally: check if req.user.id matches post.user
 
     post.content = content || post.content;
     post.tags = tags || post.tags;
@@ -129,7 +129,7 @@ router.put("/posts/:postID", verifyToken, async (req, res) => {
   }
 });
 
-// Delete a post
+// delete post
 router.delete("/posts/:postID", verifyToken, async (req, res) => {
   try {
     const { postID } = req.params;
@@ -141,7 +141,7 @@ router.delete("/posts/:postID", verifyToken, async (req, res) => {
   }
 });
 
-// Add a comment to a post (with optional anonymous info)
+// add comment to 1 post (with optional anonymous info)
 router.post("/posts/:postID/comments", verifyToken, async (req, res) => {
   try {
     const { postID } = req.params;
@@ -167,7 +167,7 @@ router.post("/posts/:postID/comments", verifyToken, async (req, res) => {
         };
       }
     }
-    else{
+    else {
      
       const user = await UserAuth.findById(req.user.id);
       if (user) {
@@ -186,7 +186,7 @@ router.post("/posts/:postID/comments", verifyToken, async (req, res) => {
   }
 });
 
-// Upvote a post
+// upvote post
 router.post("/posts/:postID/upvote", verifyToken, async (req, res) => {
   try {
     const { postID } = req.params;
@@ -194,13 +194,13 @@ router.post("/posts/:postID/upvote", verifyToken, async (req, res) => {
     if (!post) return res.status(404).json({ error: "Post not found." });
     const userId = req.user.id;
 
-    // Remove user from downvotedBy if present.
+    // remove user from downvotedBy if present
     if (post.downvotedBy && post.downvotedBy.includes(userId)) {
       post.downvotedBy = post.downvotedBy.filter(
         (id) => id.toString() !== userId.toString()
       );
     }
-    // Toggle upvote.
+    // toggle upvote
     if (post.upvotedBy && post.upvotedBy.includes(userId)) {
       post.upvotedBy = post.upvotedBy.filter(
         (id) => id.toString() !== userId.toString()
@@ -215,7 +215,7 @@ router.post("/posts/:postID/upvote", verifyToken, async (req, res) => {
   }
 });
 
-// Downvote a post
+// downvote a post
 router.post("/posts/:postID/downvote", verifyToken, async (req, res) => {
   try {
     const { postID } = req.params;
@@ -223,13 +223,13 @@ router.post("/posts/:postID/downvote", verifyToken, async (req, res) => {
     if (!post) return res.status(404).json({ error: "Post not found." });
     const userId = req.user.id;
 
-    // Remove from upvotedBy if exists.
+    // remove from upvotedBy if exists
     if (post.upvotedBy && post.upvotedBy.includes(userId)) {
       post.upvotedBy = post.upvotedBy.filter(
         (id) => id.toString() !== userId.toString()
       );
     }
-    // Toggle downvote.
+    // toggle downvote
     if (post.downvotedBy && post.downvotedBy.includes(userId)) {
       post.downvotedBy = post.downvotedBy.filter(
         (id) => id.toString() !== userId.toString()

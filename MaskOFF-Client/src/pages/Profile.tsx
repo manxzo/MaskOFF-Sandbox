@@ -33,12 +33,12 @@ const Profile = () => {
       setLoading(true);
       try {
         if (username) {
-          // Fetch public profile by username
+          // fetch public profile by username
           const res = await axios.get<PublicProfileResponse>(`http://localhost:3000/api/user/by-username/${username}`);
           console.log("API response:", res.data);
           setProfileData(res.data);
         } else if (user && user.profile) {
-          // Use current user's profile details from context if no username parameter is provided
+          // use current user profile details from context IF no username parameter was provided
           setProfileData({
             user: {
               name: user.name,

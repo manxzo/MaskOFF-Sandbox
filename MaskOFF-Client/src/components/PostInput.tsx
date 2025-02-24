@@ -12,52 +12,52 @@ interface PostInputProps {
   onPostCreated: () => void;
 }
 
-// Two types of posts we can create
+// two types of posts we can create
 type PostType = "Job" | "Service";
 
-// Common fields that both post types share
+// common fields that both post types share
 interface BasePost {
   title: string;
   description: string;
 }
 
-// Job posts need price and contract period (in days)
+// job posts need price and contract period (in days)
 interface JobPost extends BasePost {
   type: "Job";
   price: number;
   contractPeriod: number;
 }
 
-// Service posts just need a minimum price
+// service posts just need a minimum price
 interface ServicePost extends BasePost {
   type: "Service";
   fromPrice: number;
 }
 
 const PostInput = ({ onPostCreated }: PostInputProps) => {
-  // Start with Job post type by default
+  // start with job post type by default
   const [postType, setPostType] = useState<PostType>("Job");
 
-  // Initialize form with empty values but set type as Job
+  // initialize form with empty values but set type as *Job
   const [newPost, setNewPost] = useState<Partial<JobPost | ServicePost>>({
     type: "Job",
     title: "",
     description: "",
     price: 0,
     contractPeriod: 0,
-    // Don't need fromPrice for Job posts
+    // no need fromPrice for job posts
     fromPrice: undefined
   });
   const [loading, setLoading] = useState(false);
 
-  // When user changes post type, reset the form with appropriate fields
+  // when user change post type, reset the form with appropriate fields
   const handlePostTypeChange = (value: PostType) => {
     setPostType(value);
     setNewPost({
       ...newPost,
       type: value,
-      // If Job: set job fields, clear service fields
-      // If Service: set service fields, clear job fields
+      // if job: set job fields, clear service fields
+      // if service: set service fields, clear job fields
       ...(value === "Job" 
         ? { price: 0, contractPeriod: 0, fromPrice: undefined }
         : { fromPrice: 0, price: undefined, contractPeriod: undefined }

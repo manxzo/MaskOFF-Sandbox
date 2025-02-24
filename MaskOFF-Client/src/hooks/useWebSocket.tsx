@@ -1,4 +1,3 @@
-// src/hooks/useWebSocketUpdates.tsx
 import { useEffect, useContext } from "react";
 import { GlobalConfigContext } from "../config/GlobalConfig";
 import { 
@@ -16,14 +15,14 @@ export const useWebSocketUpdates = () => {
   const { user, setFriends, setFriendRequestsReceived, setFriendRequestsSent, setChats } = globalContext;
 
   useEffect(() => {
-    // Only create the connection if a user is logged in
+    // only create the connection if user isLoggedIn
     if (!user) return;
 
     const ws = new WebSocket("ws://localhost:3000");
 
     ws.onopen = () => {
       console.log("WebSocket connected");
-      // Authenticate the connection with the logged in user's ID
+      // authenticate connection with the logged in user ID
       ws.send(JSON.stringify({ type: "AUTH", userID: user.userID }));
     };
 
@@ -68,7 +67,7 @@ export const useWebSocketUpdates = () => {
       console.log("WebSocket connection closed");
     };
 
-    // Cleanup: close the connection when the component unmounts or user changes.
+    // cleanup: close connection when component unmounts / user changes
     return () => {
       if (ws.readyState === WebSocket.OPEN || ws.readyState === WebSocket.CONNECTING) {
         ws.close();

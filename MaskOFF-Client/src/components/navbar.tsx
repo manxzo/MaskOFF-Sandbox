@@ -25,7 +25,7 @@ export const Navbar = () => {
   const { logout } = useUser();
 
   const { isOpen, onOpen, onOpenChange } = useDisclosure();
-  // Choose nav items based on auth state.
+  // choose nav items based on auth state.
   const navItems = token
     ? siteConfig.authenticatedNavItems
     : siteConfig.unauthenticatedNavItems;
@@ -54,7 +54,7 @@ export const Navbar = () => {
                   {item.label}
                 </Button>
               ) : (
-                // For Login and Register in unauthenticated state, open modal.
+                // for login/register in unauthenticated state, open modal.
                 (item.label === "Login/Register") ? (
                   <>
                     <Button variant="flat" onPress={onOpen}>
@@ -64,7 +64,7 @@ export const Navbar = () => {
                   </>
 
                 ) : (
-                  // For Login and Register in unauthenticated state, open modal.
+                  // for login/register in unauthenticated state, open modal.
                   (item.label === "Settings") ? (
                     <>
                       <User

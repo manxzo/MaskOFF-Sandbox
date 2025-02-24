@@ -32,7 +32,7 @@ const jobSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-// Virtual transformation: rename _id to jobID and remove __v
+// virtual transform: rename _id to jobID and remove __v
 jobSchema.set("toJSON", {
   virtuals: true,
   transform: (doc, ret) => {

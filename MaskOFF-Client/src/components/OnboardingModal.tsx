@@ -50,7 +50,7 @@ const OnboardingModal = ({ isOpen, onClose }: { isOpen: boolean; onClose: () => 
     }
   };
 
-  // handle skip: close modal and navigate to profile page
+  // handle skip: close modal + navigate to profile page
   const handleSkip = () => {
     onClose();
     navigate("/profile");

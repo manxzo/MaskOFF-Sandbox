@@ -1,4 +1,3 @@
-// models/Post.js
 const mongoose = require("mongoose");
 
 const commentSchema = new mongoose.Schema({
@@ -10,21 +9,21 @@ const commentSchema = new mongoose.Schema({
   author:{type:String,required:true},
   content: { type: String, required: true },
   timestamp: { type: Date, default: Date.now },
-  // Optional anonymous info for comments:
+  // optional anonymous info for comments:
   anonymousInfo: {
     anonymousIdentity: { type: String },
     details: { type: String },
   },
 });
 
-// You can add a custom method on the comment schema as well if you want to hide the real user info
+// you can add custom method on the comment schema also (if want to hide the real user info)
 commentSchema.methods.toPublic = function() {
   const ret = this.toObject({ virtuals: true });
-  // If comment is posted anonymously (assuming we pass an `isAnonymous` flag along with comment data),
-  // then expose only the anonymous info.
+  // if comment posted anonymously (assuming we pass `isAnonymous` flag together with comment data),
+  // then expose only the anonymous info
   ret.commentID = ret._id
   if (ret.anonymousInfo && ret.anonymousInfo.anonymousIdentity) {
-    // Remove the actual user field
+    // remove the actual user field
     ret.user = undefined;
     return {
       ...ret,
@@ -34,12 +33,12 @@ commentSchema.methods.toPublic = function() {
       },
     };
   } else {
-    // Otherwise, return the user id and assume that the caller populated it.
+    // otherwise, return user id and assume that the caller populated it
     return ret;
   }
 };
 
-// Consolidated Post schema
+// consolidated Post schema
 const postSchema = new mongoose.Schema(
   {
     user: {
@@ -64,7 +63,7 @@ const postSchema = new mongoose.Schema(
       default: [],
     },
     comments: [commentSchema],
-    // Field to store anonymous identity & details if the post is anonymous.
+    // field to store anonymous identity & details if post is anonymous
     anonymousInfo: {
       anonymousIdentity: { type: String },
       details: { type: String },
@@ -73,32 +72,32 @@ const postSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-// A custom method to output a public version of a post.
+// custom method to output public version of a post
 postSchema.methods.toPublic = function() {
   const ret = this.toObject({ virtuals: true });
   ret.postID = ret._id;  
-  // Remove Mongo-specific fields
+  // remove mongo-specific fields
   delete ret.__v;
   delete ret._id;
   
-  // Depending on anonymity, set the user field accordingly.
+  // depending on anonymity, set the user field accordingly
   if (ret.isAnonymous) {
-    // If the post is anonymous, do not reveal the real user information.
+    // if post is anonymous, don't reveal the real user info
     ret.user = {
-      // Show only anonymous info; if not set, provide a fallback.
+      // show only anonymous info; if not set, provide fallback
       anonymousIdentity: ret.anonymousInfo?.anonymousIdentity || "Anonymous",
       details: ret.anonymousInfo?.details || "",
     };
   } else {
-    // Non-anonymous posts: assume the user field is populated.
-    // Expose the user's id and username.
+    // non-anonymous posts: assume user field is populated
+    // expose the user's id + username
     ret.user = {
       userID: ret.user._id ? ret.user._id : ret.user, // if populated, ret.user._id is available
       username: ret.user.username,
     };
   }
   
-  // Optionally, remove the anonymousInfo field from output.
+  // optionally, remove anonymousInfo field from output
   delete ret.anonymousInfo;
   return ret;
 };
