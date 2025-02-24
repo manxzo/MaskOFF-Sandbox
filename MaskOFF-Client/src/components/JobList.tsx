@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Button, Card, CardHeader, CardBody, CardFooter, Modal, ModalContent, ModalHeader, ModalBody, ModalFooter, Textarea, Spinner } from "@heroui/react";
 import { getJobApplications, updateApplicationStatus, applyToJob } from "@/services/services";
 import { addToast } from "@heroui/toast";
-
+import useChats from "@/hooks/useChats";
 // what a job looks like in our app
 interface Job {
   jobID: string;
@@ -47,9 +47,9 @@ const JobList = ({ jobs, currentUserID, onEdit, onDelete }: Omit<JobListProps, '
   const [applications, setApplications] = useState<Application[]>([]);
   const [loading, setLoading] = useState(false);
   const [applyModalOpen, setApplyModalOpen] = useState(false);
-  const [selectedJobId, setSelectedJobId] = useState<string | null>(null);
+  const [selectedJob, setSelectedJob] = useState(null);
   const [applicationMessage, setApplicationMessage] = useState("");
-
+ const {sendChatMessage} = useChats();
   // check if current user created this job
   const isJobAuthor = (job: Job) => {
     // added null checks
@@ -114,16 +114,22 @@ const JobList = ({ jobs, currentUserID, onEdit, onDelete }: Omit<JobListProps, '
     }
   };
 
-  const handleApplyClick = (jobID: string) => {
-    setSelectedJobId(jobID);
+  const handleApplyClick = (job) => {
+    setSelectedJob(job);
     setApplyModalOpen(true);
   };
 
   const handleSubmitApplication = async () => {
-    if (!selectedJobId) return;
+    if (!selectedJob) return;
     
     try {
-      await applyToJob(selectedJobId, applicationMessage);
+      await applyToJob(selectedJob.jobID, applicationMessage);
+      await sendChatMessage({
+        recipientID: selectedJob.user.userID,
+        text: applicationMessage.trim(),
+        chatType: "job",
+        jobID:selectedJob.jobID
+      });
       addToast({
         title: "Success",
         description: "Application submitted successfully",
@@ -131,7 +137,7 @@ const JobList = ({ jobs, currentUserID, onEdit, onDelete }: Omit<JobListProps, '
       });
       setApplyModalOpen(false);
       setApplicationMessage("");
-      setSelectedJobId(null);
+      setSelectedJob(null);
     } catch (err) {
       // Error toast is handled by the interceptor
     }
@@ -214,7 +220,7 @@ const JobList = ({ jobs, currentUserID, onEdit, onDelete }: Omit<JobListProps, '
             ) : (
               <Button 
                 variant="solid" 
-                onPress={() => handleApplyClick(job.jobID)}
+                onPress={() => handleApplyClick(job)}
                 disabled={job.isComplete}
               >
                 {job.isComplete ? "Job Completed" : "Apply Now"}

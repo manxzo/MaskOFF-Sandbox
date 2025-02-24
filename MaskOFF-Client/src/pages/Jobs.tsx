@@ -168,28 +168,6 @@ const Jobs = () => {
           initialData={selectedJob || undefined}
           mode={selectedJob ? "edit" : "create"}
         />
-
-        <Modal isOpen={applyModalOpen} onClose={() => setApplyModalOpen(false)}>
-          <ModalContent>
-            <ModalHeader>Apply for Job</ModalHeader>
-            <ModalBody>
-              <Textarea
-                label="Why are you interested?"
-                placeholder="Enter your application message..."
-                value={applicationMessage}
-                onChange={(e) => setApplicationMessage(e.target.value)}
-              />
-            </ModalBody>
-            <ModalFooter>
-              <Button variant="flat" color="danger" onPress={() => setApplyModalOpen(false)}>
-                Cancel
-              </Button>
-              <Button color="primary" onPress={handleSubmitApplication}>
-                Submit Application
-              </Button>
-            </ModalFooter>
-          </ModalContent>
-        </Modal>
       </div>
     </DefaultLayout>
   );
