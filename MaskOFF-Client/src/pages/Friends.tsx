@@ -12,16 +12,12 @@ const FriendPage: React.FC = () => {
   if (!globalContext) {
     throw new Error("FriendPage must be used within a GlobalConfigProvider");
   }
-  const { user } = globalContext;
+  const { user,refresh } = globalContext;
   const friendRequestsSent = user?.friendRequestsSent;
   const friendRequestsReceived = user?.friendRequestsReceived;
   const friends = user?.friends;
   const { sendRequest, acceptRequest, rejectRequest } = useFriends();
   const navigate = useNavigate();
-  const [refreshTrigger,setRefreshTrigger] = useState(false);
-  const handleRefresh = ()=>{
-    setRefreshTrigger(!refreshTrigger);
-  }
   const [allUsers, setAllUsers] = useState<Friend[]>([]);
   const [loadingUsers, setLoadingUsers] = useState<boolean>(false);
 
@@ -40,7 +36,7 @@ const FriendPage: React.FC = () => {
       }
     };
     fetchUsers();
-  }, [refreshTrigger]);
+  }, [refresh]);
 
   
   if (!user || loadingUsers) {
@@ -68,7 +64,10 @@ const FriendPage: React.FC = () => {
     const details = getUserDetails(fr.userID);
     return { ...fr, ...details };
   }) ?? [];
-
+  const detailedFriends = friends?.map(fr => {
+    const details = getUserDetails(fr.userID);
+    return { ...fr, ...details };
+  }) ?? [];
   const filteredFriends = allUsers?.filter(friend => {
     if (friend.userID === user.userID) return false;
     const alreadySent = friendRequestsSent.some(fr => fr.userID === friend.userID);
@@ -80,10 +79,8 @@ const FriendPage: React.FC = () => {
   const handleSendRequest = (friendID: string) => {
     if (friendRequestsReceived.some(fr => fr.userID === friendID)) {
       acceptRequest(friendID);
-      handleRefresh();
     } else {
       sendRequest(friendID);
-      handleRefresh();
     }
   };
 
@@ -118,7 +115,7 @@ const FriendPage: React.FC = () => {
                           @{friend.username}
                         </Link>
                       }
-                      name={friend.name || "Unknown"}
+                      name={friend.name}
                       className="flex-grow"
                     />
                     <Button onPress={() => handleSendRequest(friend.userID)} isIconOnly color="danger">
@@ -184,7 +181,7 @@ const FriendPage: React.FC = () => {
                           @{fr.username}
                         </Link>
                       }
-                      name={fr.name || "Unknown"}
+                      name={fr.name}
                     />
                   </CardBody>
                   <CardFooter>
@@ -196,11 +193,11 @@ const FriendPage: React.FC = () => {
           )}
         </Tab>
         <Tab key="friends" title="Friends">
-          {friends?.length === 0 ? (
+          {detailedFriends?.length === 0 ? (
             <p>You have no friends yet.</p>
           ) : (
             <div className="grid grid-cols-4 gap-4">
-              {(friends ?? []).map(friend => (
+              {(detailedFriends ?? []).map(friend => (
                 <Card key={friend.userID}>
                   <CardBody>
                     <User
@@ -214,7 +211,7 @@ const FriendPage: React.FC = () => {
                           @{friend.username}
                         </Link>
                       }
-                      name={friend.name || "Unknown"}
+                      name={friend.name}
                     />
                   </CardBody>
                   <CardFooter className="flex justify-around">

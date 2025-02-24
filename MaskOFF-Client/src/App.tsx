@@ -3,7 +3,6 @@ import Home from "./pages/Home";
 import { EmailVerification } from "./pages/EmailVerification";
 import { ResetPasswordForm } from "./pages/PasswordReset";
 import FriendsPage from "./pages/Friends";
-import Posts from "./pages/Posts";
 import Jobs from "./pages/Jobs";
 import Dashboard from "./pages/Dashboard";
 import Profile from "./pages/Profile";
@@ -23,7 +22,6 @@ const App = () => {
       <Route path="/verify-email" element={<EmailVerification />} />
       <Route path="/reset-password" element={<ResetPasswordForm />} />
       <Route path="/friends" element={<FriendsPage />} />
-      <Route path="/posts" element={<Posts />} />
       <Route path="/explore" element={<Explore />} />
       <Route path="/chat/:chatID?" element={<Chat />} />
       <Route path="/jobs" element={<Jobs />} />

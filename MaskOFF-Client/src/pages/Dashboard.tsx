@@ -19,18 +19,17 @@ const Dashboard = () => {
         upvoteExistingPost,
         downvoteExistingPost,
     } = usePosts();
-    const { user } = useContext(GlobalConfigContext);
+    const { user,refresh } = useContext(GlobalConfigContext);
     const [content, setContent] = useState<string>("");
     const [tags, setTags] = useState<string>("");
     const [isAnonymous, setIsAnonymous] = useState<boolean>(false);
     const [commentContent, setCommentContent] = useState<{ [key: string]: string }>({});
-    const [refreshTrigger, setRefreshTrigger] = useState(false);
-    
+   
     useEffect(() => {
         fetchPosts();
 
         console.log(posts);
-    }, [refreshTrigger])
+    }, [refresh])
     const convertDate = (timestamp) => {
         const dateObj = new Date(timestamp);
 
@@ -48,7 +47,7 @@ const Dashboard = () => {
             setContent("");
             setTags("");
             setIsAnonymous(false);
-            setRefreshTrigger(!refreshTrigger);
+        
         } catch (err) {
             console.error("Error creating post:", err);
         }
@@ -62,7 +61,7 @@ const Dashboard = () => {
                 isAnonymous: isAnonymous[postID],
             });
             setCommentContent((prev) => ({ ...prev, [postID]: "" }));
-            setRefreshTrigger(!refreshTrigger);
+            
         } catch (err) {
             console.error("Error adding comment:", err);
         }
@@ -70,7 +69,7 @@ const Dashboard = () => {
     const handleUpvote = async (postID) => {
         try {
             await upvoteExistingPost(postID);
-            setRefreshTrigger(!refreshTrigger);
+            
         }
         catch (err) {
             console.log(err);
@@ -79,7 +78,7 @@ const Dashboard = () => {
     const handleDownvote = async (postID) => {
         try {
             await downvoteExistingPost(postID)
-            setRefreshTrigger(!refreshTrigger);
+            
         }
         catch (err) {
             console.log(err);
