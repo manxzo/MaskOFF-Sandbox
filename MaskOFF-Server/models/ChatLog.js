@@ -35,6 +35,7 @@ const messageSchema = new mongoose.Schema({
 const transactionSchema = new mongoose.Schema({
   applicantID: { type: mongoose.Schema.Types.ObjectId, ref: "UserAuth" },
   applicantInfo: { identity: { type: String }, details: { type: String } },
+  jobID:{type:mongoose.Schema.Types.ObjectId,ref:"Job"},
   offerPrice: Number,
   status: { type: String, enum: ["pending", "accepted", "completed"], default: "pending" },
   applicantAnonymous: { type: Boolean, default: true },
@@ -52,7 +53,7 @@ const chatLogSchema = new mongoose.Schema(
     ],
     messages: [messageSchema],
     chatType: { type: String, enum: ["general", "job"], default: "general" },
-    transaction: transactionSchema,
+    transaction: {type:transactionSchema,default:{}},
   },
   { timestamps: true }
 );

@@ -62,7 +62,7 @@ const useChats = () => {
   };
 
   const sendChatMessage = async (
-    payload: { chatID?: string; recipientID?: string; text: string; chatType?: string }
+    payload: { chatID?: string; recipientID?: string; text: string; chatType?: string;jobID?:string }
   ) => {
     setLoading(true);
     setError(null);

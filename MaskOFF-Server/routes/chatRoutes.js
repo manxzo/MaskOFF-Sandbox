@@ -55,7 +55,7 @@ router.get("/chats", verifyToken, async (req, res) => {
 // Send message in chat. 
 router.post("/chat/send", verifyToken, async (req, res) => {
   try {
-    const { chatID, recipientID, text, chatType } = req.body;
+    const { chatID, recipientID, text, chatType,jobID } = req.body;
     if (!text) throw new Error("Missing text");
 
     let chat;
@@ -70,7 +70,8 @@ router.post("/chat/send", verifyToken, async (req, res) => {
       const participants = [toObjectId(req.user.id), recipient];
       chat = await ChatLog.findOne({
         participants: { $all: participants },
-        chatType: chatType || "general"
+        chatType: chatType || "general",
+        transaction:{jobID:jobID},
       });
       if (!chat) {
         chat = new ChatLog({
@@ -78,9 +79,15 @@ router.post("/chat/send", verifyToken, async (req, res) => {
           chatType: chatType || "general"
         });
         if (chat.chatType === "job") {
+          if(jobID){
           chat.transaction.applicantAnonymous = true;
           chat.transaction.status = "pending";
           chat.transaction.applicantID = toObjectId(req.user.id);
+          chat.transaction.jobID = toObjectId(jobID);
+          }
+        else{
+          throw new Error("No Job ID specified!")
+        }
         }
         await chat.save();
       }
