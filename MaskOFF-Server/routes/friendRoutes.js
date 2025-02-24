@@ -35,7 +35,7 @@ const { sendToUser, sendToUsers } = require("../components/wsUtils");
     await recipient.save();
 
    
-    sendToUser(friendID, { type: "UPDATE_DATA", update: "user" });
+    sendToUsers([friendID,sender._id], { type: "UPDATE_DATA", update: "user" });
     res.json({ message: "Friend request sent." });
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -129,7 +129,10 @@ router.post("/friends/reject", verifyToken, async (req, res) => {
 
     await currentUser.save();
     await sender.save();
-
+    sendToUsers([req.user.id, friendID], {
+      type: "UPDATE_DATA",
+      update: "user",
+    });
     res.json({ message: "Friend request rejected." });
   } catch (err) {
     res.status(500).json({ error: err.message });
