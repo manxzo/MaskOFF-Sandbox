@@ -4,7 +4,7 @@ import { Card } from "@heroui/react";
 import { Input } from "@heroui/react";
 import { Textarea } from "@heroui/react";
 
-// Shape of our job form data
+// shape of our job form data
 interface JobFormData {
   title: string;
   description: string;
@@ -12,14 +12,14 @@ interface JobFormData {
   contractPeriod: string;
 }
 
-// Props that this component accepts
+// props that this component accepts
 interface JobInputProps {
   onSubmit: (data: JobFormData) => Promise<void>;
   initialData?: JobFormData;  // Optional data for editing existing jobs
   submitLabel?: string;  // Custom label for the submit button
 }
 
-// The main form component for creating/editing jobs
+// main form component for creating/editing jobs
 const JobInput = ({ onSubmit, initialData, submitLabel = "Create Job" }: JobInputProps) => {
   // Keep track of form values
   const [formData, setFormData] = useState<JobFormData>(
@@ -31,11 +31,11 @@ const JobInput = ({ onSubmit, initialData, submitLabel = "Create Job" }: JobInpu
     }
   );
 
-  // Handle form submission
+  // handle form submission
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     await onSubmit(formData);
-    // Only reset the form if we're creating a new job
+    // only reset form if we creating new job
     if (!initialData) {
       setFormData({
         title: "",
@@ -49,7 +49,7 @@ const JobInput = ({ onSubmit, initialData, submitLabel = "Create Job" }: JobInpu
   return (
     <Card>
       <form onSubmit={handleSubmit}>
-        {/* Job title input */}
+        {/* job title input */}
         <div>
           <span>Title</span>
           <Input
@@ -62,7 +62,7 @@ const JobInput = ({ onSubmit, initialData, submitLabel = "Create Job" }: JobInpu
           />
         </div>
 
-        {/* Job description textarea */}
+        {/* job description textarea */}
         <div>
           <span>Description</span>
           <Textarea
@@ -75,13 +75,13 @@ const JobInput = ({ onSubmit, initialData, submitLabel = "Create Job" }: JobInpu
           />
         </div>
 
-        {/* Price input - needs to be a number */}
+        {/* price input: needs to be a number */}
         <div>
           <span>Price</span>
           <Input
             id="price"
             type="number"
-            value={formData.price.toString()} // Fix for type error
+            value={formData.price.toString()} // fix for type error*
             onChange={(e) =>
               setFormData({ ...formData, price: Number(e.target.value) })
             }
@@ -89,7 +89,7 @@ const JobInput = ({ onSubmit, initialData, submitLabel = "Create Job" }: JobInpu
           />
         </div>
 
-        {/* Contract period input */}
+        {/* contract period input */}
         <div>
           <span>Contract Period</span>
           <Input
@@ -105,7 +105,6 @@ const JobInput = ({ onSubmit, initialData, submitLabel = "Create Job" }: JobInpu
           />
         </div>
 
-        {/* Submit button */}
         <div>
           <Button type="submit">{submitLabel}</Button>
         </div>

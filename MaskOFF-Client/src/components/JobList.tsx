@@ -1,7 +1,7 @@
 import { Button } from "@heroui/react";
 import { Card, CardHeader, CardBody, CardFooter } from "@heroui/react";
 
-// What a job looks like in our app
+// what a job looks like in our app
 interface Job {
   jobID: string;
   title: string;
@@ -20,7 +20,7 @@ interface Job {
   };
 }
 
-// Props needed for the job list
+// props needed for job list
 interface JobListProps {
   jobs: Job[];
   currentUserID: string;
@@ -30,14 +30,14 @@ interface JobListProps {
 }
 
 const JobList = ({ jobs, currentUserID, onEdit, onDelete, onApply }: JobListProps) => {
-  // Check if the current user created this job
+  // check if current user created this job
   const isJobAuthor = (job: Job) => {
-    // Add null checks
+    // added null checks
     if (!job.user || !job.user.userID || !currentUserID) return false;
     return job.user.userID === currentUserID;
   };
 
-  // Make dates look nice and readable
+  // make dates look nice and readable
   const formatDate = (dateString: string) => {
     try {
       const date = new Date(dateString);
@@ -55,10 +55,9 @@ const JobList = ({ jobs, currentUserID, onEdit, onDelete, onApply }: JobListProp
 
   return (
     <div>
-      {/* Loop through all jobs and show them as cards */}
+      {/* loop through all jobs and show them as cards */}
       {jobs?.map((job) => (
         <Card key={job.jobID}>
-          {/* Job header with title and poster info */}
           <CardHeader>
             <h2>Job Title: {job.title || 'Untitled'}</h2>
             <div>
@@ -66,7 +65,7 @@ const JobList = ({ jobs, currentUserID, onEdit, onDelete, onApply }: JobListProp
             </div>
           </CardHeader>
 
-          {/* Job details section */}
+          {/* job details section */}
           <CardBody>
             <h3>Job Description: {job.description || 'No description available'}</h3>
             <p>Contract Period (Days): {job.contractPeriod || 'Not specified'}</p>
@@ -74,7 +73,7 @@ const JobList = ({ jobs, currentUserID, onEdit, onDelete, onApply }: JobListProp
             <p>Last Updated: {formatDate(job.updatedAt)}</p>
           </CardBody>
 
-          {/* Action buttons - show different ones based on ownership */}
+          {/* action buttons - show different ones based on ownership */}
           <CardFooter>
             {isJobAuthor(job) ? (
               <>

@@ -1,4 +1,3 @@
-// src/components/EmailVerification.tsx
 import { useLocation, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import useUser from "@/hooks/useUser";

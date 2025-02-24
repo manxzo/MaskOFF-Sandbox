@@ -41,7 +41,7 @@ const Chat = () => {
     }
   };
 
-  // Updated function to correctly determine the other participant's username.
+  // updated function to correctly confirm the other participant username
   const findOtherUsername = (chat: any) => {
     if (!chat || !chat.participants || !user) return "";
     const otherParticipant = chat.participants.find(
@@ -53,7 +53,7 @@ const Chat = () => {
   return (
     <DefaultLayout>
       <div className="max-w-4xl mx-auto p-4 flex flex-col md:flex-row gap-4">
-        {/* Sidebar: List of Chats */}
+        {/* sidebar: chat list */}
         <div className="w-full md:w-1/3 border-r pr-2">
           <h2 className="text-xl font-bold mb-2">Chats</h2>
           {loading ? (
@@ -84,7 +84,7 @@ const Chat = () => {
             </ul>
           )}
         </div>
-        {/* Main Chat Panel */}
+        {/* main chat panel */}
         <div className="w-full md:w-2/3">
           {selectedChat ? (
             <>

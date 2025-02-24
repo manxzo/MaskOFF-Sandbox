@@ -1,4 +1,3 @@
-// src/hooks/usePosts.tsx
 import { useState } from "react";
 import {
   createPost,
@@ -99,7 +98,7 @@ const usePosts = () => {
     }
   };
 
-  // Updated addPostComment: Accepts an object with content and an optional isAnonymous flag.
+  // !updated addPostComment: accepts an object with content and an optional isAnonymous flag.
   const addPostComment = async (
     postID: string,
     data: { content: string; isAnonymous?: boolean }
@@ -126,7 +125,7 @@ const usePosts = () => {
     setError(null);
     try {
       const res = await upvotePost(postID);
-      // Optionally, update local state if needed.
+      // option to update local state if needed.
       return res.data;
     } catch (err: any) {
       setError(
@@ -143,7 +142,7 @@ const usePosts = () => {
     setError(null);
     try {
       const res = await downvotePost(postID);
-      // Optionally, update local state if needed.
+      // option to update local state if needed.
       return res.data;
     } catch (err: any) {
       setError(

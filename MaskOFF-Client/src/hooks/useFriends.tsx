@@ -1,4 +1,3 @@
-// src/hooks/useFriends.tsx
 import { useState, useContext } from "react";
 import {
   sendFriendRequest,
@@ -29,7 +28,7 @@ export const useFriends = () => {
     setError(null);
     try {
       const res = await sendFriendRequest(friendID);
-      // Optionally, you can re-fetch friend requests after sending one.
+      // optionally, you can re-fetch friend requests after sending one.
       return res.data;
     } catch (err: any) {
       const errMsg =
@@ -84,7 +83,7 @@ export const useFriends = () => {
     setError(null);
     try {
       const res = await acceptFriendRequest(friendID);
-      // Refresh friends list and friend request lists after accepting
+      // refresh friends list and friend request lists after accepting
       const friendsRes = await getFriends();
       setFriends(friendsRes.data.friends || []);
       await fetchFriendRequestsReceived();
@@ -107,7 +106,7 @@ export const useFriends = () => {
     setError(null);
     try {
       const res = await rejectFriendRequest(friendID);
-      // Refresh friend request lists after rejection
+      // refresh friend request lists after rejection
       await fetchFriendRequestsReceived();
       await fetchFriendRequestsSent();
       return res.data;

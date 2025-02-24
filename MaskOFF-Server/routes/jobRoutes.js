@@ -4,7 +4,7 @@ const Job = require("../models/Job");
 const UserProfile = require("../models/UserProfile");
 const { verifyToken } = require("../components/jwtUtils");
 
-// Create a new job
+// create new job
 router.post("/jobs", verifyToken, async (req, res) => {
   try {
     const { title, description, price, contractPeriod } = req.body;
@@ -25,7 +25,7 @@ router.post("/jobs", verifyToken, async (req, res) => {
 
     await newJob.save();
 
-    // Populate user data before sending response
+    // populate user data before sending response
     const populatedJob = await Job.findById(newJob._id).populate(
       "user",
       "username"
@@ -40,14 +40,14 @@ router.post("/jobs", verifyToken, async (req, res) => {
   }
 });
 
-// Get all jobs with user profile info
+// get all jobs with user profile info
 router.get("/jobs", async (req, res) => {
   try {
     const jobs = await Job.find().populate("user", "username");
 
     const jobsWithProfile = await Promise.all(
       jobs.map(async (job) => {
-        // Added null check for job.user so the server doesn't crash if the user is deleted
+        // added null check for job.user so the server doesn't crash if the user is deleted
         if (!job.user) {
           return {
             ...job.toJSON(),
@@ -76,7 +76,7 @@ router.get("/jobs", async (req, res) => {
   }
 });
 
-// Get a single job by jobID
+// get 1 job by jobID
 router.get("/jobs/:jobID", async (req, res) => {
   try {
     const job = await Job.findById(req.params.jobID).populate(
@@ -103,7 +103,7 @@ router.get("/jobs/:jobID", async (req, res) => {
   }
 });
 
-// Update a job
+// update job
 router.put("/jobs/:jobID", verifyToken, async (req, res) => {
   try {
     const { jobID } = req.params;
@@ -112,14 +112,14 @@ router.put("/jobs/:jobID", verifyToken, async (req, res) => {
     const job = await Job.findById(jobID);
     if (!job) return res.status(404).json({ error: "Job not found." });
 
-    // Check if the user owns the job
+    // check if user owns the job
     if (job.user.toString() !== req.user.id) {
       return res
         .status(403)
         .json({ error: "Not authorized to update this job." });
     }
 
-    // Update fields if provided
+    // update fields if provided
     if (title) job.title = title;
     if (description) job.description = description;
     if (price) job.price = price;
@@ -133,7 +133,7 @@ router.put("/jobs/:jobID", verifyToken, async (req, res) => {
   }
 });
 
-// Delete a job
+// delete job
 router.delete("/jobs/:jobID", verifyToken, async (req, res) => {
   try {
     const { jobID } = req.params;
@@ -141,7 +141,7 @@ router.delete("/jobs/:jobID", verifyToken, async (req, res) => {
 
     if (!job) return res.status(404).json({ error: "Job not found." });
 
-    // Check if the user owns the job
+    // check if user owns the job
     if (job.user.toString() !== req.user.id) {
       return res
         .status(403)
@@ -155,7 +155,7 @@ router.delete("/jobs/:jobID", verifyToken, async (req, res) => {
   }
 });
 
-// Get jobs by user
+// get jobs by user
 router.get("/users/:userID/jobs", async (req, res) => {
   try {
     const { userID } = req.params;

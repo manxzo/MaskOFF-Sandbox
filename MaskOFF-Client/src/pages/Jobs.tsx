@@ -60,7 +60,7 @@ const Jobs = () => {
 
     loadJobs();
     
-    // Get user ID from localStorage
+    // get user ID from localStorage
     const token = localStorage.getItem("token");
     if (token) {
       try {
@@ -135,7 +135,7 @@ const Jobs = () => {
 
   const handleApply = async (jobID: string) => {
     try {
-      // Need to implement this in services and API
+      // need to implement this in services + API
       // await applyToJob(jobID);
       addToast({
         title: "Success",

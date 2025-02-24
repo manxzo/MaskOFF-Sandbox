@@ -9,9 +9,7 @@ const upload = multer({ dest: "uploads/" });
 // MailerSend-based email utility functions
 const { sendVerificationEmail, sendForgotPasswordEmail } = require("../components/emailUtils");
 
-// ================== Registration & Verification ==================
-
-// registration: Create UserAuth and corresponding UserProfile, then send verification email.
+// registration: create UserAuth and its UserProfile, then send verification email
 router.post("/register", async (req, res) => {
   try {
     const {
@@ -62,7 +60,7 @@ router.post("/register", async (req, res) => {
       return res.status(409).json({ error: "This MaskOFF ID is already taken." });
     }
 
-    // create the user
+    // create user
     const newUserAuth = new UserAuth({
       name,
       dob: dateOfBirth,
@@ -73,7 +71,7 @@ router.post("/register", async (req, res) => {
     newUserAuth.generateVerificationToken(); // generate a verification token
     await newUserAuth.save();
 
-    // create the profile
+    // create profile
     // only anonymousIdentity is mandatory for "anonymousInfo"
     const newUserProfile = new UserProfile({
       user: newUserAuth._id,
@@ -137,7 +135,7 @@ router.get("/verify-email", async (req, res) => {
 
 // ================== Forgot Password & Reset Password ==================
 
-// request password reset
+// req password reset
 router.post("/forgot-password", async (req, res) => {
   const { email } = req.body;
   if (!email) return res.status(400).json({ error: "Email is required." });
@@ -146,14 +144,14 @@ router.post("/forgot-password", async (req, res) => {
     const user = await UserAuth.findOne({ email });
     if (!user) return res.status(404).json({ error: "User not found." });
 
-    // Generate a reset token.
+    // generate reset token
     const resetToken = user.generateResetPasswordToken();
     await user.save();
 
-    // Construct the password reset URL.
+    // construct pw reset URL
     const resetUrl = `${process.env.CLIENT_URL}/reset-password?userID=${user._id}&token=${resetToken}&username=${user.username}`;
 
-    // updated: Use user.name (not user.firstName) since our schema has "name"
+    // updated: use user.name (not user.firstName) since our schema has "name"
     await sendForgotPasswordEmail({
       to: user.email,
       toName: user.name,
@@ -169,7 +167,7 @@ router.post("/forgot-password", async (req, res) => {
   }
 });
 
-// reset password: set a new password using the token.
+// reset password: set new password using token
 router.post("/reset-password", async (req, res) => {
   const { userID, token, newPassword, confirmNewPassword } = req.body;
   if (!userID || !token || !newPassword || !confirmNewPassword) {
@@ -182,11 +180,11 @@ router.post("/reset-password", async (req, res) => {
   try {
     const user = await UserAuth.findById(userID);
     if (!user) return res.status(404).json({ error: "User not found." });
-    // check if token is valid and not expired.
+    // check if token is valid && not expired
     if (user.resetPasswordToken !== token || Date.now() > user.resetPasswordExpires) {
       return res.status(400).json({ error: "Invalid or expired reset token." });
     }
-    // update password (it will be hashed in the pre-save hook).
+    // update password (it will be hashed in the pre-save hook)
     user.password = newPassword;
     user.resetPasswordToken = undefined;
     user.resetPasswordExpires = undefined;
@@ -198,7 +196,7 @@ router.post("/reset-password", async (req, res) => {
   }
 });
 
-// ================== Login, Get User, Update Profile, List Users ==================
+// ========== Login, Get User, Update Profile, List Users ==========
 
 // login route
 router.post("/users/login", async (req, res) => {
@@ -223,7 +221,7 @@ router.get("/user/:userID", verifyToken, async (req, res) => {
     const user = await UserAuth.findById(req.params.userID);
     if (!user) return res.status(404).json({ error: "User not found." });
     const profile = await UserProfile.findOne({ user: user._id });
-    // updated: using custom instance methods for public profile conversion.
+    // updated: using custom instance methods for public profile conversion
     res.json({ ...user.toJSON(), profile: profile ? profile.toJSON() : {} });
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -290,9 +288,9 @@ router.get("/avatar/:userID", async (req, res) => {
 // get list of all users (basic public information)
 router.get("/users", async (req, res) => {
   try {
-    // retrieve all users from the authentication collection.
+    // retrieve all users from the authentication collection
     const users = await UserAuth.find({});
-    // for each user, build a public object with an avatar URL if available.
+    // for each user, build a public object with an avatar URL if avail
     const userList = users.map(user => {
       const avatarUrl = (user.avatar && user.avatar.data)
         ? `${process.env.APP_URL || "http://localhost:3000/api"}/avatar/${user._id}`

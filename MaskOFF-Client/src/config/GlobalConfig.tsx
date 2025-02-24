@@ -1,4 +1,3 @@
-// src/contexts/GlobalConfigContext.tsx
 import React, { createContext, useState, useEffect, ReactNode } from "react";
 import { getUser } from "@/services/services";
 import { jwtDecode } from "jwt-decode";
