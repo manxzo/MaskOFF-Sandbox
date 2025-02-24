@@ -2,7 +2,7 @@ const express = require("express");
 const router = express.Router();
 const UserAuth = require("../models/UserAuth");
 const { verifyToken } = require("../components/jwtUtils");
-const { sendToUser, sendToUsers } = require("../components/wsUtils");
+const { sendToUsers } = require("../components/wsUtils");
 
 
  //sending friend request:

@@ -68,7 +68,6 @@ const useChats = () => {
     setError(null);
     try {
       const res = await sendMessage(payload);
-      // When sending by chatID, refresh messages.
       const chatID = payload.chatID || res.data.chat.chatID;
       const updatedRes = await getMessages(chatID);
       setMessages(updatedRes.data.messages || updatedRes.data);

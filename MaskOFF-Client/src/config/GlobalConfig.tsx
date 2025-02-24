@@ -75,9 +75,11 @@ export interface GlobalConfigContextType {
   user: User | null;
   chats: Chat[];
   error: string | null;
+  refresh:boolean;
   setUser: React.Dispatch<React.SetStateAction<User | null>>;
   setChats: React.Dispatch<React.SetStateAction<Chat[] | null>>;
   setError: React.Dispatch<React.SetStateAction<string | null>>;
+  setRefresh:React.Dispatch<React.SetStateAction<boolean>>;
 }
 
 export const GlobalConfigContext = createContext<GlobalConfigContextType | undefined>(undefined);
@@ -92,7 +94,7 @@ export const GlobalConfigProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [chats, setChats] = useState<Chat[]>([]);
   const [error, setError] = useState<string | null>(null);
-
+  const [refresh,setRefresh] = useState(false);
   useEffect(() => {
     const token = localStorage.getItem("token");
     if (token) {
@@ -148,6 +150,10 @@ export const GlobalConfigProvider = ({ children }: { children: ReactNode }) => {
               setChats(dedupedChats);
               break;
             }
+            case "refresh":{
+              setRefresh(!refresh)
+              break;
+            }
             default:
               console.warn("Unknown update type:", data.update);
           }
@@ -178,6 +184,8 @@ export const GlobalConfigProvider = ({ children }: { children: ReactNode }) => {
     setUser,
     setChats,
     setError,
+    refresh,
+    setRefresh
   };
 
   return (
