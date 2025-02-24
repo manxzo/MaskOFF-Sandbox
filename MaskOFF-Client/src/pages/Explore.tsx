@@ -7,43 +7,26 @@ import { title, subtitle } from "@/components/primitives";
 import { GlobalConfigContext } from "@/config/GlobalConfig";
 
 const Explore = () => {
-  const {
-    posts,
-    loading: postsLoading,
-    error: postsError,
-    fetchPosts,
-  } = usePosts();
-  const {
-    jobs,
-    loading: jobsLoading,
-    error: jobsError,
-    fetchJobs,
-  } = useJobs();
+  const { posts, loading: postsLoading, error: postsError, fetchPosts } = usePosts();
+  const { jobs, loading: jobsLoading, error: jobsError, fetchJobs } = useJobs();
   const {refresh} = useContext(GlobalConfigContext);
-
-
-
   useEffect(() => {
     fetchPosts();
     fetchJobs();
   }, [refresh, fetchPosts, fetchJobs]);
 
+
   return (
     <DefaultLayout>
       <div className="p-8">
-        <h1 className={title({ size: "lg", color: "cyan", fullWidth: true })}>
-          Explore
-        </h1>
+        <h1 className={title({ size: "lg", color: "cyan", fullWidth: true })}>Explore</h1>
         <p className={subtitle({ fullWidth: true })}>
           Discover the latest posts and job opportunities from the community.
         </p>
-
         <Divider className="my-6" />
 
         <section>
-          <h2 className={title({ size: "md", color: "violet", fullWidth: true })}>
-            Recent Posts
-          </h2>
+          <h2 className={title({ size: "md", color: "violet", fullWidth: true })}>Recent Posts</h2>
           {postsLoading ? (
             <Spinner size="lg" />
           ) : postsError ? (
@@ -55,9 +38,7 @@ const Explore = () => {
               <Card key={post.postID || post._id} className="mb-4">
                 <CardHeader>
                   <h3 className={title({ size: "sm" })}>
-                    {post.isAnonymous
-                      ? post.user.anonymousIdentity
-                      : post.user.username}
+                    {post.isAnonymous ? post.user.anonymousIdentity : post.user.username}
                   </h3>
                 </CardHeader>
                 <CardBody>
@@ -90,6 +71,7 @@ const Explore = () => {
               <Card key={job.jobID} className="mb-4">
                 <CardHeader>
                   <h3 className={title({ size: "sm" })}>{job.title}</h3>
+                  <p>Posted by: {job.user.username}</p>
                 </CardHeader>
                 <CardBody>
                   <p>{job.description}</p>
